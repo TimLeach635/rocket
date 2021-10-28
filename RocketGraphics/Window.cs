@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
+using RocketEngine;
 
 namespace RocketGraphics
 {
@@ -16,6 +17,7 @@ namespace RocketGraphics
     private float _worldUnitsPerMetre = 1e-7f;
     private float _earthRadius = 6.371e6f;
 
+    // earth rendering
     private Sphere _earthSphere;
     private float[] _earthVertices;
     private Shader _earthShader;
@@ -23,6 +25,7 @@ namespace RocketGraphics
     private int _earthVAO;
     private Matrix4 _earthModel;
 
+    // rocket rendering
     private Sphere _rocketSphere;
     private float[] _rocketVertices;
     private Shader _rocketShader;
@@ -30,9 +33,16 @@ namespace RocketGraphics
     private int _rocketVAO;
     private Matrix4 _rocketModel;
 
-    private Stopwatch _timer;
+    // common rendering
     private Matrix4 _view;
     private Matrix4 _projection;
+
+    // simulation
+    private Stopwatch _timer;
+    private float _simSecondsPerRealSecond = 360f;
+    private OriginEarth _earth;
+    private List<IGravitator> _gravitators;
+    private Rocket _rocket;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -40,6 +50,11 @@ namespace RocketGraphics
     protected override void OnLoad()
     {
       base.OnLoad();
+
+      // simulation setup
+      _earth = new OriginEarth();
+      _gravitators = new List<IGravitator> { _earth };
+      _rocket = new Rocket(_gravitators);
 
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
@@ -154,12 +169,19 @@ namespace RocketGraphics
 
       // timing
       double elapsed = _timer.Elapsed.TotalSeconds;
+      _timer.Restart();
+      float simElapsed = (float)elapsed * _simSecondsPerRealSecond;
+      _rocket.Update(simElapsed);
 
       // transform
       _earthModel = Matrix4.Identity;
 
       _rocketModel = Matrix4.Identity;
-      _rocketModel *= Matrix4.CreateTranslation(0.75f, 0f, 0f);
+      _rocketModel *= Matrix4.CreateTranslation(
+        _rocket.Location.X * _worldUnitsPerMetre,
+        _rocket.Location.Y * _worldUnitsPerMetre,
+        _rocket.Location.Z * _worldUnitsPerMetre
+      );
 
       _view = Matrix4.Identity;
       _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));

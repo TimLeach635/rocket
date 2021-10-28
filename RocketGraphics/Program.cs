@@ -135,11 +135,6 @@ namespace RocketGraphics
                 rocket.Update(simElapsed);
 
                 // update graphics
-                GL.Clear(ClearBufferMask.ColorBufferBit);
-                GL.BindVertexArray(_vertexArrayObject);
-                GL.DrawArrays(OpenTK.Graphics.OpenGL.PrimitiveType.Lines, 0, 3);
-                SwapBuffers();
-
                 window.Draw(earthSprite);
                 UpdateOrbitalPathQueue();
                 window.Draw(pastLocations.ToArray(), SFML.Graphics.PrimitiveType.LineStrip);
