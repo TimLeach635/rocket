@@ -15,21 +15,22 @@ namespace RocketGraphics
   {
     private float _worldUnitsPerMetre = 1e-7f;
     private float _earthRadius = 6.371e6f;
+
     private Sphere _earthSphere;
     private float[] _earthVertices;
-    private float[] _triVertices =
-    {
-      -0.5f, -0.5f, 0.0f, // Bottom-left vertex
-       0.5f, -0.5f, 0.0f, // Bottom-right vertex
-       0.0f,  0.5f, 0.0f  // Top vertex
-    };
     private Shader _earthShader;
+    private int _earthVBO;
+    private int _earthVAO;
+
+    private Sphere _rocketSphere;
+    private float[] _rocketVertices;
     private Shader _rocketShader;
+    private int _rocketVBO;
+    private int _rocketVAO;
+
     private Stopwatch _timer;
     private Matrix4 _view;
     private Matrix4 _projection;
-    private int _vertexBufferObject;
-    private int _vertexArrayObject;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -81,12 +82,11 @@ namespace RocketGraphics
           }
         "
       );
-      // _earthSphere = new Sphere(_earthRadius * _worldUnitsPerMetre, 20, 10, _earthShader);
-      _earthSphere = new Sphere(0.5f, 20, 10, _earthShader);
+      _earthSphere = new Sphere(_earthRadius * _worldUnitsPerMetre, 20, 10, _earthShader);
       _earthVertices = _earthSphere.GenerateVertexArray();
 
-      _vertexBufferObject = GL.GenBuffer();
-      GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+      _earthVBO = GL.GenBuffer();
+      GL.BindBuffer(BufferTarget.ArrayBuffer, _earthVBO);
       GL.BufferData(
         BufferTarget.ArrayBuffer,
         _earthVertices.Length * sizeof(float),
@@ -94,8 +94,8 @@ namespace RocketGraphics
         BufferUsageHint.StaticDraw
       );
 
-      _vertexArrayObject = GL.GenVertexArray();
-      GL.BindVertexArray(_vertexArrayObject);
+      _earthVAO = GL.GenVertexArray();
+      GL.BindVertexArray(_earthVAO);
       GL.VertexAttribPointer(
         0,
         3,
@@ -107,7 +107,30 @@ namespace RocketGraphics
 
       GL.EnableVertexAttribArray(0);
 
-      _earthShader.Use();
+      _rocketSphere = new Sphere(_earthRadius * _worldUnitsPerMetre / 20, 10, 5, _rocketShader);
+      _rocketVertices = _rocketSphere.GenerateVertexArray();
+
+      _rocketVBO = GL.GenBuffer();
+      GL.BindBuffer(BufferTarget.ArrayBuffer, _rocketVBO);
+      GL.BufferData(
+        BufferTarget.ArrayBuffer,
+        _rocketVertices.Length * sizeof(float),
+        _rocketVertices,
+        BufferUsageHint.StaticDraw
+      );
+
+      _rocketVAO = GL.GenVertexArray();
+      GL.BindVertexArray(_rocketVAO);
+      GL.VertexAttribPointer(
+        0,
+        3,
+        VertexAttribPointerType.Float,
+        false,
+        3 * sizeof(float),
+        0
+      );
+
+      GL.EnableVertexAttribArray(0);
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -119,9 +142,15 @@ namespace RocketGraphics
 
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+      // render earth
       _earthShader.Use();
-      GL.BindVertexArray(_vertexArrayObject);
+      GL.BindVertexArray(_earthVAO);
       GL.DrawArrays(PrimitiveType.Lines, 0, _earthVertices.Length / 3);
+
+      // render rocket
+      _rocketShader.Use();
+      GL.BindVertexArray(_rocketVAO);
+      GL.DrawArrays(PrimitiveType.Lines, 0, _rocketVertices.Length / 3);
 
       // timing
       double elapsed = _timer.Elapsed.TotalSeconds;
