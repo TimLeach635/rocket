@@ -18,6 +18,10 @@ namespace RocketGraphics
     private int _vertexArrayObject;
     private Vector4 _colour;
     private Shader _shader { get; set; }
+    int _modelUniformLocation;
+    int _viewUniformLocation;
+    int _projectionUniformLocation;
+    int _colourUniformLocation;
     private Matrix4 _model;
     public Matrix4 Model {
       get => _model;
@@ -124,19 +128,19 @@ namespace RocketGraphics
         "
       );
       _shader.Use();
+      _modelUniformLocation = GL.GetUniformLocation(_shader.Handle, "model");
+      _viewUniformLocation = GL.GetUniformLocation(_shader.Handle, "view");
+      _projectionUniformLocation = GL.GetUniformLocation(_shader.Handle, "projection");
+      _colourUniformLocation = GL.GetUniformLocation(_shader.Handle, "colour");
     }
 
     public void Render(Matrix4 view, Matrix4 projection)
     {
       _shader.Use();
-      int modelLocation = GL.GetUniformLocation(_shader.Handle, "model");
-      int viewLocation = GL.GetUniformLocation(_shader.Handle, "view");
-      int projectionLocation = GL.GetUniformLocation(_shader.Handle, "projection");
-      int colourLocation = GL.GetUniformLocation(_shader.Handle, "colour");
-      GL.UniformMatrix4(modelLocation, true, ref _model);
-      GL.UniformMatrix4(viewLocation, true, ref view);
-      GL.UniformMatrix4(projectionLocation, true, ref projection);
-      GL.Uniform4(colourLocation, ref _colour);
+      GL.UniformMatrix4(_modelUniformLocation, true, ref _model);
+      GL.UniformMatrix4(_viewUniformLocation, true, ref view);
+      GL.UniformMatrix4(_projectionUniformLocation, true, ref projection);
+      GL.Uniform4(_colourUniformLocation, ref _colour);
 
       GL.BindVertexArray(_vertexArrayObject);
       GL.DrawArrays(PrimitiveType.Lines, 0, _vertices.Length / 3);
