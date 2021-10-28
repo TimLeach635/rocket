@@ -9,10 +9,7 @@ namespace RocketGraphics
   {
     private float _radius;
     private uint _sectorCount;
-    private float SectorAngle => 2 * MathF.PI / _sectorCount;
     private uint _stackCount;
-    private float StackAngle => MathF.PI / _stackCount;
-
     private float[] _vertices;
     private int _vertexBufferObject;
     private int _vertexArrayObject;
@@ -28,43 +25,50 @@ namespace RocketGraphics
       set => _model = value;
     }
 
-    public float[] GenerateVertexArray()
+    public static float[] GenerateVertexArray(float radius, uint sectorCount, uint stackCount)
     {
       List<float> vertices = new List<float>();
+      float sectorAngle = 2 * MathF.PI / sectorCount;
+      float stackAngle = MathF.PI / stackCount;
 
-      for (uint sector = 0; sector < _sectorCount; sector++)
+      for (uint sector = 0; sector < sectorCount; sector++)
       {
-        float thetaStart = sector * SectorAngle;
-        float thetaEnd = (sector + 1) * SectorAngle;
-        for (uint stack = 0; stack < _stackCount; stack++)
+        float thetaStart = sector * sectorAngle;
+        float thetaEnd = (sector + 1) * sectorAngle;
+        for (uint stack = 0; stack < stackCount; stack++)
         {
-          float phiStart = (stack * StackAngle) - MathF.PI/2;
-          float phiEnd = ((stack + 1) * StackAngle) - MathF.PI/2;
+          float phiStart = (stack * stackAngle) - MathF.PI/2;
+          float phiEnd = ((stack + 1) * stackAngle) - MathF.PI/2;
 
           // line going down
-          vertices.Add(_radius * MathF.Cos(phiStart) * MathF.Cos(thetaStart));
-          vertices.Add(_radius * MathF.Cos(phiStart) * MathF.Sin(thetaStart));
-          vertices.Add(_radius * MathF.Sin(phiStart));
+          vertices.Add(radius * MathF.Cos(phiStart) * MathF.Cos(thetaStart));
+          vertices.Add(radius * MathF.Cos(phiStart) * MathF.Sin(thetaStart));
+          vertices.Add(radius * MathF.Sin(phiStart));
 
-          vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Cos(thetaStart));
-          vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Sin(thetaStart));
-          vertices.Add(_radius * MathF.Sin(phiEnd));
+          vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Cos(thetaStart));
+          vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Sin(thetaStart));
+          vertices.Add(radius * MathF.Sin(phiEnd));
 
           // line going across
-          if (stack < _stackCount - 1)
+          if (stack < stackCount - 1)
           {
-            vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Cos(thetaStart));
-            vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Sin(thetaStart));
-            vertices.Add(_radius * MathF.Sin(phiEnd));
+            vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Cos(thetaStart));
+            vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Sin(thetaStart));
+            vertices.Add(radius * MathF.Sin(phiEnd));
 
-            vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Cos(thetaEnd));
-            vertices.Add(_radius * MathF.Cos(phiEnd) * MathF.Sin(thetaEnd));
-            vertices.Add(_radius * MathF.Sin(phiEnd));
+            vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Cos(thetaEnd));
+            vertices.Add(radius * MathF.Cos(phiEnd) * MathF.Sin(thetaEnd));
+            vertices.Add(radius * MathF.Sin(phiEnd));
           }
         }
       }
 
       return vertices.ToArray();
+    }
+
+    public float[] GenerateVertexArray()
+    {
+      return GenerateVertexArray(_radius, _sectorCount, _stackCount);
     }
 
     public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour)
