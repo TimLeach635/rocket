@@ -51,10 +51,11 @@ namespace RocketGraphics
 
           uniform mat4 model;
           uniform mat4 view;
+          uniform mat4 projection;
 
           void main()
           {
-            gl_Position = vec4(aPos, 1.0) * model * view;
+            gl_Position = vec4(aPos, 1.0) * model * view * projection;
           }
         ",
         @"
@@ -74,10 +75,11 @@ namespace RocketGraphics
 
           uniform mat4 model;
           uniform mat4 view;
+          uniform mat4 projection;
 
           void main()
           {
-            gl_Position = vec4(aPos, 1.0) * model * view;
+            gl_Position = vec4(aPos, 1.0) * model * view * projection;
           }
         ",
         @"
@@ -160,23 +162,27 @@ namespace RocketGraphics
       _rocketModel *= Matrix4.CreateTranslation(0.75f, 0f, 0f);
 
       _view = Matrix4.Identity;
-      _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-80f));
-      _view *= Matrix4.CreateTranslation(0f, 0f, 0f);
+      _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));
+      _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
 
       _projection = Matrix4.Identity;
-      // _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
+      _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
 
       _earthShader.Use();
       int earthModelUniformLocation = GL.GetUniformLocation(_earthShader.Handle, "model");
       int earthViewUniformLocation = GL.GetUniformLocation(_earthShader.Handle, "view");
+      int earthProjectionUniformLocation = GL.GetUniformLocation(_earthShader.Handle, "projection");
       GL.UniformMatrix4(earthModelUniformLocation, true, ref _earthModel);
       GL.UniformMatrix4(earthViewUniformLocation, true, ref _view);
+      GL.UniformMatrix4(earthProjectionUniformLocation, true, ref _projection);
 
       _rocketShader.Use();
       int rocketModelUniformLocation = GL.GetUniformLocation(_rocketShader.Handle, "model");
       int rocketViewUniformLocation = GL.GetUniformLocation(_rocketShader.Handle, "view");
+      int rocketProjectionUniformLocation = GL.GetUniformLocation(_rocketShader.Handle, "projection");
       GL.UniformMatrix4(rocketModelUniformLocation, true, ref _rocketModel);
       GL.UniformMatrix4(rocketViewUniformLocation, true, ref _view);
+      GL.UniformMatrix4(rocketProjectionUniformLocation, true, ref _projection);
 
       // render earth
       _earthShader.Use();
