@@ -21,12 +21,14 @@ namespace RocketGraphics
     private Shader _earthShader;
     private int _earthVBO;
     private int _earthVAO;
+    private Matrix4 _earthModel;
 
     private Sphere _rocketSphere;
     private float[] _rocketVertices;
     private Shader _rocketShader;
     private int _rocketVBO;
     private int _rocketVAO;
+    private Matrix4 _rocketModel;
 
     private Stopwatch _timer;
     private Matrix4 _view;
@@ -47,9 +49,11 @@ namespace RocketGraphics
           #version 330 core
           layout (location = 0) in vec3 aPos;
 
+          uniform mat4 model;
+
           void main()
           {
-            gl_Position = vec4(aPos, 1.0);
+            gl_Position = vec4(aPos, 1.0) * model;
           }
         ",
         @"
@@ -67,9 +71,11 @@ namespace RocketGraphics
           #version 330 core
           layout (location = 0) in vec3 aPos;
 
+          uniform mat4 model;
+
           void main()
           {
-            gl_Position = vec4(aPos, 1.0);
+            gl_Position = vec4(aPos, 1.0) * model;
           }
         ",
         @"
@@ -142,6 +148,31 @@ namespace RocketGraphics
 
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+      // timing
+      double elapsed = _timer.Elapsed.TotalSeconds;
+
+      // transform
+      _earthModel = Matrix4.Identity;
+      _earthModel *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(45));
+
+      _rocketModel = Matrix4.Identity;
+      _rocketModel *= Matrix4.CreateTranslation(0.75f, 0f, 0f);
+
+      _view = Matrix4.Identity;
+      // _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-80f));
+      // _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
+
+      _projection = Matrix4.Identity;
+      // _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
+
+      _earthShader.Use();
+      int earthModelUniformLocation = GL.GetUniformLocation(_earthShader.Handle, "model");
+      GL.UniformMatrix4(earthModelUniformLocation, true, ref _earthModel);
+
+      _rocketShader.Use();
+      int rocketModelUniformLocation = GL.GetUniformLocation(_rocketShader.Handle, "model");
+      GL.UniformMatrix4(rocketModelUniformLocation, true, ref _rocketModel);
+
       // render earth
       _earthShader.Use();
       GL.BindVertexArray(_earthVAO);
@@ -151,17 +182,6 @@ namespace RocketGraphics
       _rocketShader.Use();
       GL.BindVertexArray(_rocketVAO);
       GL.DrawArrays(PrimitiveType.Lines, 0, _rocketVertices.Length / 3);
-
-      // timing
-      double elapsed = _timer.Elapsed.TotalSeconds;
-
-      // transform
-      _view = Matrix4.Identity;
-      // _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-80f));
-      // _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
-
-      _projection = Matrix4.Identity;
-      // _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
 
       SwapBuffers();
     }
