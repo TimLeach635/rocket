@@ -68,7 +68,7 @@ namespace RocketGraphics
       Shader = shader;
     }
 
-    public void OnLoad()
+    public void Initialise()
     {
       _vertexBufferObject = GL.GenBuffer();
       GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
@@ -89,21 +89,21 @@ namespace RocketGraphics
         3 * sizeof(float),
         0
       );
+
       GL.EnableVertexAttribArray(0);
     }
 
-    public void Render(Matrix4 view, Matrix4 projection)
+    public void Render(Matrix4 model, Matrix4 view, Matrix4 projection)
     {
+      Shader.Use();
       int modelLocation = GL.GetUniformLocation(Shader.Handle, "model");
       int viewLocation = GL.GetUniformLocation(Shader.Handle, "view");
       int projectionLocation = GL.GetUniformLocation(Shader.Handle, "projection");
-
-      Matrix4 model = Matrix4.CreateTranslation(Position);
-
-      Shader.Use();
       GL.UniformMatrix4(modelLocation, true, ref model);
       GL.UniformMatrix4(viewLocation, true, ref view);
-      GL.UniformMatrix4(modelLocation, true, ref projection);
+      GL.UniformMatrix4(projectionLocation, true, ref projection);
+
+      // Matrix4 model = Matrix4.CreateTranslation(Position);
 
       GL.BindVertexArray(_vertexArrayObject);
       GL.DrawArrays(PrimitiveType.Lines, 0, _vertices.Length / 3);
