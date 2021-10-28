@@ -16,8 +16,13 @@ namespace RocketGraphics
     private float[] _vertices;
     private int _vertexBufferObject;
     private int _vertexArrayObject;
-    public Shader Shader { get; set; }
-    public Vector3 Position { get; set; }
+    private Vector4 _colour;
+    private Shader _shader { get; set; }
+    private Matrix4 _model;
+    public Matrix4 Model {
+      get => _model;
+      set => _model = value;
+    }
 
     public float[] GenerateVertexArray()
     {
@@ -58,14 +63,14 @@ namespace RocketGraphics
       return vertices.ToArray();
     }
 
-    public Sphere(float radius, uint sectorCount, uint stackCount, Shader shader)
+    public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour)
     {
       _radius = radius;
       _sectorCount = sectorCount;
       _stackCount = stackCount;
       _vertices = GenerateVertexArray();
-      Position = new Vector3(0f, 0f, 0f);
-      Shader = shader;
+      Model = Matrix4.Identity;
+      _colour = colour;
     }
 
     public void Initialise()
@@ -91,19 +96,47 @@ namespace RocketGraphics
       );
 
       GL.EnableVertexAttribArray(0);
+
+      _shader = new Shader(
+        @"
+          #version 330 core
+          layout (location = 0) in vec3 aPos;
+
+          uniform mat4 model;
+          uniform mat4 view;
+          uniform mat4 projection;
+
+          void main()
+          {
+            gl_Position = vec4(aPos, 1.0) * model * view * projection;
+          }
+        ",
+        @"
+          #version 330 core
+          out vec4 outColour;
+
+          uniform vec4 colour;
+
+          void main()
+          {
+            outColour = colour;
+          }
+        "
+      );
+      _shader.Use();
     }
 
-    public void Render(Matrix4 model, Matrix4 view, Matrix4 projection)
+    public void Render(Matrix4 view, Matrix4 projection)
     {
-      Shader.Use();
-      int modelLocation = GL.GetUniformLocation(Shader.Handle, "model");
-      int viewLocation = GL.GetUniformLocation(Shader.Handle, "view");
-      int projectionLocation = GL.GetUniformLocation(Shader.Handle, "projection");
-      GL.UniformMatrix4(modelLocation, true, ref model);
+      _shader.Use();
+      int modelLocation = GL.GetUniformLocation(_shader.Handle, "model");
+      int viewLocation = GL.GetUniformLocation(_shader.Handle, "view");
+      int projectionLocation = GL.GetUniformLocation(_shader.Handle, "projection");
+      int colourLocation = GL.GetUniformLocation(_shader.Handle, "colour");
+      GL.UniformMatrix4(modelLocation, true, ref _model);
       GL.UniformMatrix4(viewLocation, true, ref view);
       GL.UniformMatrix4(projectionLocation, true, ref projection);
-
-      // Matrix4 model = Matrix4.CreateTranslation(Position);
+      GL.Uniform4(colourLocation, ref _colour);
 
       GL.BindVertexArray(_vertexArrayObject);
       GL.DrawArrays(PrimitiveType.Lines, 0, _vertices.Length / 3);

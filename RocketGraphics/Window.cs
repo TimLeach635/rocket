@@ -2,10 +2,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
-using System.Numerics;
 using System.Diagnostics;
-using System;
-using System.Linq;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using RocketEngine;
@@ -19,13 +16,9 @@ namespace RocketGraphics
 
     // earth rendering
     private Sphere _earthSphere;
-    private Shader _earthShader;
-    private Matrix4 _earthModel;
 
     // rocket rendering
     private Sphere _rocketSphere;
-    private Shader _rocketShader;
-    private Matrix4 _rocketModel;
 
     // common rendering
     private Matrix4 _view;
@@ -53,58 +46,20 @@ namespace RocketGraphics
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
 
-      _earthShader = new Shader(
-        @"
-          #version 330 core
-          layout (location = 0) in vec3 aPos;
-
-          uniform mat4 model;
-          uniform mat4 view;
-          uniform mat4 projection;
-
-          void main()
-          {
-            gl_Position = vec4(aPos, 1.0) * model * view * projection;
-          }
-        ",
-        @"
-          #version 330 core
-          out vec4 outColour;
-
-          void main()
-          {
-            outColour = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-          }
-        "
+      _earthSphere = new Sphere(
+        _earthRadius * _worldUnitsPerMetre,
+        20,
+        10,
+        new Vector4(0f, 1f, 0f, 1f)
       );
-      _rocketShader = new Shader(
-        @"
-          #version 330 core
-          layout (location = 0) in vec3 aPos;
-
-          uniform mat4 model;
-          uniform mat4 view;
-          uniform mat4 projection;
-
-          void main()
-          {
-            gl_Position = vec4(aPos, 1.0) * model * view * projection;
-          }
-        ",
-        @"
-          #version 330 core
-          out vec4 outColour;
-
-          void main()
-          {
-            outColour = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-          }
-        "
-      );
-      _earthSphere = new Sphere(_earthRadius * _worldUnitsPerMetre, 20, 10, _earthShader);
       _earthSphere.Initialise();
 
-      _rocketSphere = new Sphere(_earthRadius * _worldUnitsPerMetre / 20, 10, 6, _rocketShader);
+      _rocketSphere = new Sphere(
+        _earthRadius * _worldUnitsPerMetre / 20,
+        10,
+        6,
+        new Vector4(1f, 1f, 1f, 1f)
+      );
       _rocketSphere.Initialise();
 
       _timer = new Stopwatch();
@@ -124,10 +79,8 @@ namespace RocketGraphics
       _rocket.Update(simElapsed);
 
       // transform
-      _earthModel = Matrix4.Identity;
-
-      _rocketModel = Matrix4.Identity;
-      _rocketModel *= Matrix4.CreateTranslation(
+      _rocketSphere.Model = Matrix4.Identity;
+      _rocketSphere.Model *= Matrix4.CreateTranslation(
         _rocket.Location.X * _worldUnitsPerMetre,
         _rocket.Location.Y * _worldUnitsPerMetre,
         _rocket.Location.Z * _worldUnitsPerMetre
@@ -141,10 +94,10 @@ namespace RocketGraphics
       _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
 
       // render earth
-      _earthSphere.Render(_earthModel, _view, _projection);
+      _earthSphere.Render(_view, _projection);
 
       // render rocket
-      _rocketSphere.Render(_rocketModel, _view, _projection);
+      _rocketSphere.Render(_view, _projection);
 
       SwapBuffers();
     }
