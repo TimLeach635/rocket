@@ -16,59 +16,39 @@ namespace RocketGraphics
     private float _worldUnitsPerMetre = 1e-7f;
     private float _earthRadius = 6.371e6f;
     private Sphere _earthSphere;
-    private Sphere _rocketSphere;
     private float[] _earthVertices;
-    private float[] _rocketVertices;
-    private int _vertexBufferObject;
-    private int _vertexArrayObject;
+    private float[] _triVertices =
+    {
+      -0.5f, -0.5f, 0.0f, // Bottom-left vertex
+       0.5f, -0.5f, 0.0f, // Bottom-right vertex
+       0.0f,  0.5f, 0.0f  // Top vertex
+    };
     private Shader _earthShader;
     private Shader _rocketShader;
     private Stopwatch _timer;
-    private Matrix4 _earthModel;
-    private Matrix4 _rocketModel;
     private Matrix4 _view;
     private Matrix4 _projection;
+    private int _vertexBufferObject;
+    private int _vertexArrayObject;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
-      : base(gameWindowSettings, nativeWindowSettings) { }
+      : base(gameWindowSettings, nativeWindowSettings) {}
 
     protected override void OnLoad()
     {
       base.OnLoad();
 
-      _earthSphere = new Sphere(_earthRadius * _worldUnitsPerMetre, System.Numerics.Vector3.Zero, 20, 10);
-      _earthVertices = _earthSphere.VertexArray;
-
-      _rocketSphere = new Sphere(_earthRadius * _worldUnitsPerMetre / 30, System.Numerics.Vector3.Zero, 10, 5);
-      _rocketVertices = _rocketSphere.VertexArray;
-
-      List<float> allVertices = _earthVertices.ToList();
-      allVertices.AddRange(_rocketVertices);
-
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
-
-      _vertexBufferObject = GL.GenBuffer();
-      GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-      GL.BufferData(BufferTarget.ArrayBuffer, (allVertices.Count) * sizeof(float), allVertices.ToArray(), BufferUsageHint.StaticDraw);
-      
-      _vertexArrayObject = GL.GenVertexArray();
-      GL.BindVertexArray(_vertexArrayObject);
-      GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-      GL.EnableVertexAttribArray(0);
 
       _earthShader = new Shader(
         @"
           #version 330 core
           layout (location = 0) in vec3 aPos;
-          
-          uniform mat4 model;
-          uniform mat4 view;
-          uniform mat4 projection;
 
           void main()
           {
-            gl_Position = vec4(aPos, 1.0) * model * view * projection;
+            gl_Position = vec4(aPos, 1.0);
           }
         ",
         @"
@@ -85,14 +65,10 @@ namespace RocketGraphics
         @"
           #version 330 core
           layout (location = 0) in vec3 aPos;
-          
-          uniform mat4 model;
-          uniform mat4 view;
-          uniform mat4 projection;
 
           void main()
           {
-            gl_Position = vec4(aPos, 1.0) * model * view * projection;
+            gl_Position = vec4(aPos, 1.0);
           }
         ",
         @"
@@ -105,6 +81,33 @@ namespace RocketGraphics
           }
         "
       );
+      // _earthSphere = new Sphere(_earthRadius * _worldUnitsPerMetre, 20, 10, _earthShader);
+      _earthSphere = new Sphere(0.5f, 20, 10, _earthShader);
+      _earthVertices = _earthSphere.GenerateVertexArray();
+
+      _vertexBufferObject = GL.GenBuffer();
+      GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
+      GL.BufferData(
+        BufferTarget.ArrayBuffer,
+        _earthVertices.Length * sizeof(float),
+        _earthVertices,
+        BufferUsageHint.StaticDraw
+      );
+
+      _vertexArrayObject = GL.GenVertexArray();
+      GL.BindVertexArray(_vertexArrayObject);
+      GL.VertexAttribPointer(
+        0,
+        3,
+        VertexAttribPointerType.Float,
+        false,
+        3 * sizeof(float),
+        0
+      );
+
+      GL.EnableVertexAttribArray(0);
+
+      _earthShader.Use();
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -116,45 +119,20 @@ namespace RocketGraphics
 
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+      _earthShader.Use();
       GL.BindVertexArray(_vertexArrayObject);
+      GL.DrawArrays(PrimitiveType.Lines, 0, _earthVertices.Length / 3);
 
       // timing
       double elapsed = _timer.Elapsed.TotalSeconds;
 
       // transform
-      _earthModel = Matrix4.Identity;
-      _rocketModel = Matrix4.Identity;
-      _rocketModel *= Matrix4.CreateTranslation(1f, 1f, 0f);
-
       _view = Matrix4.Identity;
-      _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-80f));
-      _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
+      // _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-80f));
+      // _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
 
-      _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
-
-      int earthModelLocation = GL.GetUniformLocation(_earthShader.Handle, "model");
-      int earthViewLocation = GL.GetUniformLocation(_earthShader.Handle, "view");
-      int earthProjectionLocation = GL.GetUniformLocation(_earthShader.Handle, "projection");
-
-      int rocketModelLocation = GL.GetUniformLocation(_rocketShader.Handle, "model");
-      int rocketViewLocation = GL.GetUniformLocation(_rocketShader.Handle, "view");
-      int rocketProjectionLocation = GL.GetUniformLocation(_rocketShader.Handle, "projection");
-
-      GL.UniformMatrix4(earthModelLocation, true, ref _earthModel);
-      GL.UniformMatrix4(earthViewLocation, true, ref _view);
-      GL.UniformMatrix4(earthProjectionLocation, true, ref _projection);
-
-      GL.UniformMatrix4(rocketModelLocation, true, ref _rocketModel);
-      GL.UniformMatrix4(rocketViewLocation, true, ref _view);
-      GL.UniformMatrix4(rocketProjectionLocation, true, ref _projection);
-
-      // draw earth
-      _earthShader.Use();
-      GL.DrawArrays(PrimitiveType.Lines, 0, _earthVertices.Length / 3);
-
-      // draw rocket
-      _rocketShader.Use();
-      GL.DrawArrays(PrimitiveType.Lines, _earthVertices.Length / 3, _rocketVertices.Length / 3);
+      _projection = Matrix4.Identity;
+      // _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
 
       SwapBuffers();
     }
