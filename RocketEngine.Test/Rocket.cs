@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using NUnit.Framework;
 using RocketEngine;
 
@@ -11,7 +12,7 @@ namespace RocketEngine.Test
         [SetUp]
         public void Setup()
         {
-            _rocket = new Rocket(new List<IGravitator>());
+            _rocket = new Rocket(new List<IGravitator>(), new Vector3(), new Vector3());
         }
 
         [Test]
