@@ -8,7 +8,7 @@ namespace RocketEngine
     // we define an orbit internally by the six Keplerian elements:
     // https://en.wikipedia.org/wiki/Orbital_elements
     private float _eccentricity;
-    private float _semimajorAxisInMetres;
+    private float _semimajorAxis;
     private float _inclination;
     private float _longitudeOfAscendingNode;
     private float _argumentOfPeriapsis;
@@ -17,9 +17,17 @@ namespace RocketEngine
     // the above are taken relative to a reference epoch
     private DateTime _referenceEpoch;
 
+    public float Eccentricity => _eccentricity;
+    public float SemimajorAxisInMetres => _semimajorAxis;
+    public float Inclination => _inclination;
+    public float LongitudeOfAscendingNode => _longitudeOfAscendingNode;
+    public float ArgumentOfPeriapsis => _argumentOfPeriapsis;
+    public float MeanAnomalyAtEpoch => _meanAnomalyAtEpoch;
+    public DateTime ReferenceEpoch => _referenceEpoch;
+
     public Orbit(
       float eccentricity,
-      float semimajorAxisInMetres,
+      float semimajorAxis,
       float inclination,
       float longitudeOfAscendingNode,
       float argumentOfPeriapsis,
@@ -28,7 +36,7 @@ namespace RocketEngine
     )
     {
       _eccentricity = eccentricity;
-      _semimajorAxisInMetres = semimajorAxisInMetres;
+      _semimajorAxis = semimajorAxis;
       _inclination = inclination;
       _longitudeOfAscendingNode = longitudeOfAscendingNode;
       _argumentOfPeriapsis = argumentOfPeriapsis;
@@ -81,7 +89,7 @@ namespace RocketEngine
           timeFromEpoch.TotalSeconds
           * Math.Sqrt(
             centralBody.StandardGravitationalParameter
-            / (Math.Pow(_semimajorAxisInMetres, 3))
+            / (Math.Pow(_semimajorAxis, 3))
           )
         );
 
@@ -91,7 +99,7 @@ namespace RocketEngine
         MathF.Sqrt(1 - _eccentricity) * MathF.Cos(eccentricAnomaly / 2)
       );
 
-      float distanceToCentralBody = _semimajorAxisInMetres * (1 - _eccentricity * MathF.Cos(eccentricAnomaly));
+      float distanceToCentralBody = _semimajorAxis * (1 - _eccentricity * MathF.Cos(eccentricAnomaly));
 
       // z-axis perpendicular to orbital plane,
       // x-axis pointing to periapsis
@@ -122,7 +130,7 @@ namespace RocketEngine
           timeFromEpoch.TotalSeconds
           * Math.Sqrt(
             centralBody.StandardGravitationalParameter
-            / (Math.Pow(_semimajorAxisInMetres, 3))
+            / (Math.Pow(_semimajorAxis, 3))
           )
         );
 
@@ -132,7 +140,7 @@ namespace RocketEngine
         MathF.Sqrt(1 - _eccentricity) * MathF.Cos(eccentricAnomaly / 2)
       );
 
-      float distanceToCentralBody = _semimajorAxisInMetres * (1 - _eccentricity * MathF.Cos(eccentricAnomaly));
+      float distanceToCentralBody = _semimajorAxis * (1 - _eccentricity * MathF.Cos(eccentricAnomaly));
 
       // z-axis perpendicular to orbital plane,
       // x-axis pointing to periapsis
@@ -141,7 +149,7 @@ namespace RocketEngine
         MathF.Sqrt(1 - _eccentricity * _eccentricity) * MathF.Cos(eccentricAnomaly),
         0
       )
-        * MathF.Sqrt(centralBody.StandardGravitationalParameter * _semimajorAxisInMetres)
+        * MathF.Sqrt(centralBody.StandardGravitationalParameter * _semimajorAxis)
         / distanceToCentralBody;
 
       Matrix4x4 rotation = Matrix4x4.Identity
