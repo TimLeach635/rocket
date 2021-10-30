@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace RocketEngine
+namespace RocketEngine.Bodies
 {
   public interface IGravitator
   {
