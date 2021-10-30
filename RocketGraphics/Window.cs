@@ -4,8 +4,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using RocketEngine;
-using RocketEngine.Bodies;
-using RocketEngine.Simulation;
 using RocketEngine.Simulation.Specific;
 using System;
 using System.Diagnostics;
@@ -14,14 +12,13 @@ namespace RocketGraphics
 {
   public class Window: GameWindow
   {
-    private float _worldUnitsPerMetre = 1e-7f;
-    private float _earthRadius = 6.371e6f;
+    private float _worldUnitsPerMetre = 4e-11f;
 
-    // earth rendering
+    private Sphere _sunSphere;
+    private Sphere _mercurySphere;
+    private Sphere _venusSphere;
     private Sphere _earthSphere;
-
-    // rocket rendering
-    private Sphere _rocketSphere;
+    private Sphere _marsSphere;
 
     // common rendering
     private Matrix4 _view;
@@ -29,8 +26,8 @@ namespace RocketGraphics
 
     // simulation
     private Stopwatch _timer;
-    private float _simSecondsPerRealSecond = 360f;
-    private EarthIss _simulation;
+    private float _simDaysPerRealSecond = 50f;
+    private InnerPlanets _simulation;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -40,26 +37,53 @@ namespace RocketGraphics
       base.OnLoad();
 
       // simulation setup
-      _simulation = new EarthIss(DateTime.UtcNow);
+      _simulation = new InnerPlanets(DateTime.UtcNow);
 
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
 
-      _earthSphere = new Sphere(
-        _earthRadius * _worldUnitsPerMetre,
-        20,
+      float sunScale = 20;
+      float planetScale = 500;
+
+      _sunSphere = new Sphere(
+        Constants.SUN_RADIUS * _worldUnitsPerMetre * sunScale,
         10,
+        6,
+        new Vector4(1f, 1f, 0f, 1f)
+      );
+      _sunSphere.Initialise();
+
+      _mercurySphere = new Sphere(
+        Constants.MERCURY_RADIUS * _worldUnitsPerMetre * planetScale,
+        10,
+        6,
+        new Vector4(0.8f, 0.5f, 0.5f, 1f)
+      );
+      _mercurySphere.Initialise();
+
+      _venusSphere = new Sphere(
+        Constants.VENUS_RADIUS * _worldUnitsPerMetre * planetScale,
+        10,
+        6,
+        new Vector4(1f, 0.8f, 0.8f, 1f)
+      );
+      _venusSphere.Initialise();
+
+      _earthSphere = new Sphere(
+        Constants.EARTH_RADIUS * _worldUnitsPerMetre * planetScale,
+        10,
+        6,
         new Vector4(0f, 1f, 0f, 1f)
       );
       _earthSphere.Initialise();
 
-      _rocketSphere = new Sphere(
-        _earthRadius * _worldUnitsPerMetre / 20,
+      _marsSphere = new Sphere(
+        Constants.MARS_RADIUS * _worldUnitsPerMetre * planetScale,
         10,
         6,
-        new Vector4(1f, 1f, 1f, 1f)
+        new Vector4(1f, 0f, 0f, 1f)
       );
-      _rocketSphere.Initialise();
+      _marsSphere.Initialise();
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -74,29 +98,43 @@ namespace RocketGraphics
       // timing
       TimeSpan elapsed = _timer.Elapsed;
       _timer.Restart();
-      TimeSpan simElapsed = elapsed * _simSecondsPerRealSecond;
+      TimeSpan simElapsed = elapsed * _simDaysPerRealSecond * 86400;
       _simulation.Simulation.Update(simElapsed);
 
       // transform
-      _rocketSphere.Model = Matrix4.Identity;
-      _rocketSphere.Model *= Matrix4.CreateTranslation(
-        _simulation.Iss.Position.X * _worldUnitsPerMetre,
-        _simulation.Iss.Position.Y * _worldUnitsPerMetre,
-        _simulation.Iss.Position.Z * _worldUnitsPerMetre
+      _mercurySphere.Model = Matrix4.CreateTranslation(
+        _simulation.Mercury.Position.X * _worldUnitsPerMetre,
+        _simulation.Mercury.Position.Y * _worldUnitsPerMetre,
+        _simulation.Mercury.Position.Z * _worldUnitsPerMetre
+      );
+      _venusSphere.Model = Matrix4.CreateTranslation(
+        _simulation.Venus.Position.X * _worldUnitsPerMetre,
+        _simulation.Venus.Position.Y * _worldUnitsPerMetre,
+        _simulation.Venus.Position.Z * _worldUnitsPerMetre
+      );
+      _earthSphere.Model = Matrix4.CreateTranslation(
+        _simulation.Earth.Position.X * _worldUnitsPerMetre,
+        _simulation.Earth.Position.Y * _worldUnitsPerMetre,
+        _simulation.Earth.Position.Z * _worldUnitsPerMetre
+      );
+      _marsSphere.Model = Matrix4.CreateTranslation(
+        _simulation.Mars.Position.X * _worldUnitsPerMetre,
+        _simulation.Mars.Position.Y * _worldUnitsPerMetre,
+        _simulation.Mars.Position.Z * _worldUnitsPerMetre
       );
 
       _view = Matrix4.Identity;
       _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));
-      _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
+      _view *= Matrix4.CreateTranslation(0f, 0f, -17f);
 
       _projection = Matrix4.Identity;
       _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
 
-      // render earth
+      _sunSphere.Render(_view, _projection);
+      _mercurySphere.Render(_view, _projection);
+      _venusSphere.Render(_view, _projection);
       _earthSphere.Render(_view, _projection);
-
-      // render rocket
-      _rocketSphere.Render(_view, _projection);
+      _marsSphere.Render(_view, _projection);
 
       SwapBuffers();
     }

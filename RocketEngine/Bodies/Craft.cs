@@ -7,7 +7,7 @@ namespace RocketEngine.Bodies
 {
   public class Craft : IGravitatee
   {
-    private TimeSpan _minimumTimestep = TimeSpan.FromSeconds(1f);
+    private TimeSpan _minimumTimestep = TimeSpan.FromDays(1f);
     private DateTime _currentTime;
     private Vector3 _position;
     private Vector3 _velocity;

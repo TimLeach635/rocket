@@ -93,5 +93,10 @@ namespace RocketEngine.Simulation
 
       UpdateGravitatorsAndGravitatees();
     }
+
+    public Simulation(ICollection<IBody> bodies, TimeSpan minimumTimestep) : this(bodies)
+    {
+      _minimumTimestep = minimumTimestep;
+    }
   }
 }
