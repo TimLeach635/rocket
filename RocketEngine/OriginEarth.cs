@@ -1,18 +1,11 @@
+using RocketEngine.Bodies;
 using System;
 using System.Numerics;
 
 namespace RocketEngine
 {
-  public class OriginEarth : Planet
+  public class OriginEarth : StaticPlanet
   {
-    public OriginEarth()
-    {
-      _mass = 5.972e24f;
-    }
-
-    public override Vector3 LocationAt(DateTime _)
-    {
-      return new Vector3(0.0f, 0.0f, 0.0f);
-    }
+    public OriginEarth(DateTime initialTime) : base(initialTime, Vector3.Zero, Constants.EARTH_MASS) { }
   }
 }

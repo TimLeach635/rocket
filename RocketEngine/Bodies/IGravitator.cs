@@ -3,10 +3,9 @@ using System.Numerics;
 
 namespace RocketEngine.Bodies
 {
-  public interface IGravitator
+  public interface IGravitator : IBody
   {
     float Mass { get; }
     float StandardGravitationalParameter { get; }
-    Vector3 LocationAt(DateTime dateTime);
   }
 }

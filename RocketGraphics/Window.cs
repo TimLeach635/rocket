@@ -5,8 +5,9 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using RocketEngine;
 using RocketEngine.Bodies;
+using RocketEngine.Simulation;
+using RocketEngine.Simulation.Specific;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace RocketGraphics
@@ -29,9 +30,7 @@ namespace RocketGraphics
     // simulation
     private Stopwatch _timer;
     private float _simSecondsPerRealSecond = 360f;
-    private OriginEarth _earth;
-    private List<IGravitator> _gravitators;
-    private Rocket _rocket;
+    private EarthIss _simulation;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -41,23 +40,7 @@ namespace RocketGraphics
       base.OnLoad();
 
       // simulation setup
-      _earth = new OriginEarth();
-      _gravitators = new List<IGravitator> { _earth };
-      Orbit orbit = new Orbit(
-        0.0003938f,
-        _earthRadius + (417000 + 423000) / 2,
-        51.6444f,
-        MathHelper.DegreesToRadians(38.4733f),
-        MathHelper.DegreesToRadians(153.2242f),
-        MathHelper.DegreesToRadians(27.0427f),
-        new DateTime(2021, 10, 29, 12, 34, 51)
-      );
-      DateTime now = DateTime.UtcNow;
-      _rocket = new Rocket(
-        _gravitators,
-        orbit.GetPositionFromGravitator(_earth, now),
-        orbit.GetVelocityFromGravitator(_earth, now)
-      );
+      _simulation = new EarthIss(DateTime.UtcNow);
 
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
@@ -89,17 +72,17 @@ namespace RocketGraphics
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
       // timing
-      double elapsed = _timer.Elapsed.TotalSeconds;
+      TimeSpan elapsed = _timer.Elapsed;
       _timer.Restart();
-      float simElapsed = (float)elapsed * _simSecondsPerRealSecond;
-      _rocket.Update(simElapsed);
+      TimeSpan simElapsed = elapsed * _simSecondsPerRealSecond;
+      _simulation.Simulation.Update(simElapsed);
 
       // transform
       _rocketSphere.Model = Matrix4.Identity;
       _rocketSphere.Model *= Matrix4.CreateTranslation(
-        _rocket.Position.X * _worldUnitsPerMetre,
-        _rocket.Position.Y * _worldUnitsPerMetre,
-        _rocket.Position.Z * _worldUnitsPerMetre
+        _simulation.Iss.Position.X * _worldUnitsPerMetre,
+        _simulation.Iss.Position.Y * _worldUnitsPerMetre,
+        _simulation.Iss.Position.Z * _worldUnitsPerMetre
       );
 
       _view = Matrix4.Identity;
