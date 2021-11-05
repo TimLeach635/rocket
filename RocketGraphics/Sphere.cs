@@ -58,7 +58,8 @@ namespace RocketGraphics
         vertices.Add(0.0f);
       }
 
-      for (uint sector = 0; sector < sectorCount; sector++)
+      // sector count +1 to double-count the seam, for texturing purposes
+      for (uint sector = 0; sector < sectorCount + 1; sector++)
       {
         float theta = sector * sectorAngle;
         for (uint stack = 1; stack < stackCount; stack++)
@@ -104,16 +105,8 @@ namespace RocketGraphics
           }
 
           // line across
-          if (sector < sectorCount - 1)
-          {
-            indices.Add(stackFirstVertexIndex + stack);
-            indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
-          }
-          else
-          {
-            indices.Add(stackFirstVertexIndex + stack);
-            indices.Add(SOUTH_POLE + 1 + stack);
-          }
+          indices.Add(stackFirstVertexIndex + stack);
+          indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
         }
 
         // line to north pole
@@ -153,25 +146,11 @@ namespace RocketGraphics
           // top left triangle
           indices.Add(stackFirstVertexIndex + stack);
           indices.Add(stackFirstVertexIndex + stack + 1);
-          if (sector < sectorCount - 1)
-          {
-            indices.Add(stackFirstVertexIndex + stack + 1 + verticesPerStack);
-          }
-          else
-          {
-            indices.Add(SOUTH_POLE + 1 + stack + 1);
-          }
+          indices.Add(stackFirstVertexIndex + stack + 1 + verticesPerStack);
 
           // bottom right triangle
-          if (sector < sectorCount - 1) {
-            indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
-            indices.Add(stackFirstVertexIndex + stack + verticesPerStack + 1);
-          }
-          else
-          {
-            indices.Add(SOUTH_POLE + 1 + stack);
-            indices.Add(SOUTH_POLE + 1 + stack + 1);
-          }
+          indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
+          indices.Add(stackFirstVertexIndex + stack + verticesPerStack + 1);
           indices.Add(stackFirstVertexIndex + stack);
         }
 
