@@ -17,9 +17,11 @@ namespace RocketGraphics
 
     // earth rendering
     private Sphere _earthSphere;
+    private Texture _earthTexture;
 
     // rocket rendering
     private Sphere _rocketSphere;
+    private Texture _moonTexture;
 
     // common rendering
     private Matrix4 _view;
@@ -61,21 +63,27 @@ namespace RocketGraphics
       GL.ClearColor(0f, 0f, 0f, 1f);
       GL.Enable(EnableCap.DepthTest);
 
+      _earthTexture = Texture.LoadFromFile("resources/textures/8k_earth_daymap.jpg");
+      _earthTexture.Use(TextureUnit.Texture0);
       _earthSphere = new Sphere(
         _earthRadius * _worldUnitsPerMetre,
         200,
         100,
         new Vector4(0f, 1f, 0f, 1f),
-        "resources/textures/8k_earth_daymap.jpg"
+        _earthTexture,
+        TextureUnit.Texture0
       );
       _earthSphere.Initialise();
 
+      _moonTexture = Texture.LoadFromFile("resources/textures/8k_moon.jpg");
+      _moonTexture.Use(TextureUnit.Texture1);
       _rocketSphere = new Sphere(
         _earthRadius * _worldUnitsPerMetre / 20,
-        10,
-        6,
+        100,
+        60,
         new Vector4(1f, 1f, 1f, 1f),
-        "resources/textures/8k_earth_daymap.jpg"
+        _moonTexture,
+        TextureUnit.Texture1
       );
       _rocketSphere.Initialise();
 
@@ -102,6 +110,7 @@ namespace RocketGraphics
         _rocket.Position.Y * _worldUnitsPerMetre,
         _rocket.Position.Z * _worldUnitsPerMetre
       );
+      _earthSphere.Model *= Matrix4.CreateRotationZ((float)elapsed / 5);
 
       _view = Matrix4.Identity;
       _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));

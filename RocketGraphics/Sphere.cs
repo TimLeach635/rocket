@@ -13,13 +13,15 @@ namespace RocketGraphics
     private float[] _vertices;
     private uint[] _indices;
     private bool _textured = false;
-    private string _texturePath;
     private int _vertexBufferObject;
     private int _vertexArrayObject;
     private int _elementBufferObject;
     private Vector4 _colour;
     private Shader _shader;
     private Texture _texture;
+    private TextureUnit _textureUnit;
+    private string _textureName;
+    private int _textureInt;
     int _modelUniformLocation;
     int _viewUniformLocation;
     int _projectionUniformLocation;
@@ -185,13 +187,27 @@ namespace RocketGraphics
       return GenerateTrianglesIndexArray(_sectorCount, _stackCount);
     }
 
-    public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour, string texturePath)
+    public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour, Texture texture, TextureUnit textureUnit)
     {
       _radius = radius;
       _sectorCount = sectorCount;
       _stackCount = stackCount;
       _textured = true;
-      _texturePath = texturePath;
+      _texture = texture;
+      _textureUnit = textureUnit;
+      switch (textureUnit)
+      {
+        case TextureUnit.Texture0:
+          _textureName = "texture0";
+          _textureInt = 0;
+          break;
+        case TextureUnit.Texture1:
+          _textureName = "texture1";
+          _textureInt = 1;
+          break;
+        default:
+          throw new NotImplementedException("Tim needs to add another case to the TextureUnit switch statement!");
+      }
       _vertices = GenerateVertexArray();
       _indices = GenerateTrianglesIndexArray();
       Model = Matrix4.Identity;
@@ -248,7 +264,7 @@ namespace RocketGraphics
       //   "
       // );
       _shader = new Shader(
-        @"
+        @$"
           #version 330 core
           layout (location = 0) in vec3 aPos;
           layout (location = 1) in vec2 aTex;
@@ -260,23 +276,23 @@ namespace RocketGraphics
           out vec2 tex;
 
           void main()
-          {
+          {{
             tex = aTex;
             gl_Position = vec4(aPos, 1.0) * model * view * projection;
-          }
+          }}
         ",
-        @"
+        @$"
           #version 330 core
           out vec4 outColour;
 
           in vec2 tex;
 
-          uniform sampler2D texture0;
+          uniform sampler2D {_textureName};
 
           void main()
-          {
-            outColour = texture(texture0, tex);
-          }
+          {{
+            outColour = texture({_textureName}, tex);
+          }}
         "
       );
       _shader.Use();
@@ -284,7 +300,7 @@ namespace RocketGraphics
       _viewUniformLocation = GL.GetUniformLocation(_shader.Handle, "view");
       _projectionUniformLocation = GL.GetUniformLocation(_shader.Handle, "projection");
       // _colourUniformLocation = GL.GetUniformLocation(_shader.Handle, "colour");
-      _textureUniformLocation = GL.GetUniformLocation(_shader.Handle, "texture0");
+      _textureUniformLocation = GL.GetUniformLocation(_shader.Handle, _textureName);
 
       var vertexLocation = GL.GetAttribLocation(_shader.Handle, "aPos");
       GL.EnableVertexAttribArray(vertexLocation);
@@ -308,12 +324,14 @@ namespace RocketGraphics
         3 * sizeof(float)
       );
 
-      _texture = Texture.LoadFromFile(_texturePath);
       _texture.Use(TextureUnit.Texture0);
+      GL.UseProgram(_shader.Handle);
+      GL.Uniform1(_textureUniformLocation, _textureInt);
     }
 
     public void Render(Matrix4 view, Matrix4 projection)
     {
+      _texture.Use(_textureUnit);
       _shader.Use();
       GL.UniformMatrix4(_modelUniformLocation, true, ref _model);
       GL.UniformMatrix4(_viewUniformLocation, true, ref view);
