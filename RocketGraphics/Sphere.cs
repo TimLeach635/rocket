@@ -103,6 +103,59 @@ namespace RocketGraphics
       return indices.ToArray();
     }
 
+    public static uint[] GenerateTrianglesIndexArray(uint sectorCount, uint stackCount)
+    {
+      List<uint> indices = new List<uint>();
+      const uint NORTH_POLE = 0;
+      const uint SOUTH_POLE = 1;
+      uint verticesPerStack = stackCount - 1;
+
+      for (uint sector = 0; sector < sectorCount; sector++)
+      {
+        uint stackFirstVertexIndex = SOUTH_POLE + 1 + sector * verticesPerStack;
+
+        // triangle to south pole
+        // (we start drawing at the bottom)
+        indices.Add(SOUTH_POLE);
+        indices.Add(stackFirstVertexIndex);
+        if (sector < sectorCount - 1)
+        {
+          indices.Add(stackFirstVertexIndex + verticesPerStack);
+        }
+        else
+        {
+          indices.Add(SOUTH_POLE + 1);
+        }
+
+        // for (uint stack = 0; stack < verticesPerStack; stack++)
+        // {
+        //   // line down
+        //   if (stack < verticesPerStack - 1){
+        //     indices.Add(stackFirstVertexIndex + stack);
+        //     indices.Add(stackFirstVertexIndex + stack + 1);
+        //   }
+
+        //   // line across
+        //   if (sector < sectorCount - 1)
+        //   {
+        //     indices.Add(stackFirstVertexIndex + stack);
+        //     indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
+        //   }
+        //   else
+        //   {
+        //     indices.Add(stackFirstVertexIndex + stack);
+        //     indices.Add(SOUTH_POLE + 1 + stack);
+        //   }
+        // }
+
+        // // line to north pole
+        // indices.Add(NORTH_POLE);
+        // indices.Add(stackFirstVertexIndex + verticesPerStack - 1);
+      }
+
+      return indices.ToArray();
+    }
+
     public float[] GenerateVertexArray()
     {
       return GenerateVertexArray(_radius, _sectorCount, _stackCount);
@@ -113,13 +166,18 @@ namespace RocketGraphics
       return GenerateLinesIndexArray(_sectorCount, _stackCount);
     }
 
+    public uint[] GenerateTrianglesIndexArray()
+    {
+      return GenerateTrianglesIndexArray(_sectorCount, _stackCount);
+    }
+
     public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour)
     {
       _radius = radius;
       _sectorCount = sectorCount;
       _stackCount = stackCount;
       _vertices = GenerateVertexArray();
-      _indices = GenerateLinesIndexArray();
+      _indices = GenerateTrianglesIndexArray();
       Model = Matrix4.Identity;
       _colour = colour;
     }
@@ -199,7 +257,7 @@ namespace RocketGraphics
       GL.Uniform4(_colourUniformLocation, ref _colour);
 
       GL.BindVertexArray(_vertexArrayObject);
-      GL.DrawElements(PrimitiveType.Lines, _indices.Length, DrawElementsType.UnsignedInt, 0);
+      GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
     }
   }
 }
