@@ -148,9 +148,17 @@ namespace RocketGraphics
         //   }
         // }
 
-        // // line to north pole
-        // indices.Add(NORTH_POLE);
-        // indices.Add(stackFirstVertexIndex + verticesPerStack - 1);
+        // triangle to north pole
+        indices.Add(NORTH_POLE);
+        indices.Add(stackFirstVertexIndex + verticesPerStack - 1);
+        if (sector < sectorCount - 1)
+        {
+          indices.Add(stackFirstVertexIndex + 2 * verticesPerStack - 1);
+        }
+        else
+        {
+          indices.Add(SOUTH_POLE + verticesPerStack);
+        }
       }
 
       return indices.ToArray();
