@@ -20,8 +20,8 @@ namespace RocketGraphics
     private Texture _earthTexture;
 
     // rocket rendering
-    private Sphere _rocketSphere;
-    private Texture _moonTexture;
+    private Iss _issModel;
+    private Texture _issTexture;
 
     // common rendering
     private Matrix4 _view;
@@ -75,17 +75,14 @@ namespace RocketGraphics
       );
       _earthSphere.Initialise();
 
-      _moonTexture = Texture.LoadFromFile("resources/textures/8k_moon.jpg");
-      _moonTexture.Use(TextureUnit.Texture1);
-      _rocketSphere = new Sphere(
-        _earthRadius * _worldUnitsPerMetre / 20,
-        100,
-        60,
-        new Vector4(1f, 1f, 1f, 1f),
-        _moonTexture,
+      _issTexture = Texture.LoadFromFile("resources/textures/iss.png");
+      _issTexture.Use(TextureUnit.Texture1);
+      _issModel = new Iss(
+        5e-4f,
+        _issTexture,
         TextureUnit.Texture1
       );
-      _rocketSphere.Initialise();
+      _issModel.Initialise();
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -104,8 +101,8 @@ namespace RocketGraphics
       _rocket.Update(simElapsed);
 
       // transform
-      _rocketSphere.Model = Matrix4.Identity;
-      _rocketSphere.Model *= Matrix4.CreateTranslation(
+      _issModel.Model = Matrix4.Identity;
+      _issModel.Model *= Matrix4.CreateTranslation(
         _rocket.Position.X * _worldUnitsPerMetre,
         _rocket.Position.Y * _worldUnitsPerMetre,
         _rocket.Position.Z * _worldUnitsPerMetre
@@ -123,7 +120,7 @@ namespace RocketGraphics
       _earthSphere.Render(_view, _projection);
 
       // render rocket
-      _rocketSphere.Render(_view, _projection);
+      _issModel.Render(_view, _projection);
 
       SwapBuffers();
     }
