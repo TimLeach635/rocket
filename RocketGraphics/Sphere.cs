@@ -150,7 +150,7 @@ namespace RocketGraphics
 
         for (uint stack = 0; stack < verticesPerStack - 1; stack++)
         {
-          // bottom left triangle
+          // top left triangle
           indices.Add(stackFirstVertexIndex + stack);
           indices.Add(stackFirstVertexIndex + stack + 1);
           if (sector < sectorCount - 1)
@@ -162,15 +162,15 @@ namespace RocketGraphics
             indices.Add(SOUTH_POLE + 1 + stack + 1);
           }
 
-          // top right triangle
+          // bottom right triangle
           if (sector < sectorCount - 1) {
             indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
             indices.Add(stackFirstVertexIndex + stack + verticesPerStack + 1);
           }
           else
           {
-            indices.Add(SOUTH_POLE + 1 + stack + verticesPerStack);
-            indices.Add(SOUTH_POLE + 1 + stack + verticesPerStack + 1);
+            indices.Add(SOUTH_POLE + 1 + stack);
+            indices.Add(SOUTH_POLE + 1 + stack + 1);
           }
           indices.Add(stackFirstVertexIndex + stack);
         }
