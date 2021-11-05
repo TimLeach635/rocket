@@ -63,8 +63,8 @@ namespace RocketGraphics
 
       _earthSphere = new Sphere(
         _earthRadius * _worldUnitsPerMetre,
-        20,
-        10,
+        200,
+        100,
         new Vector4(0f, 1f, 0f, 1f),
         "resources/textures/8k_earth_daymap.jpg"
       );
