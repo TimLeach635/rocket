@@ -127,26 +127,32 @@ namespace RocketGraphics
           indices.Add(SOUTH_POLE + 1);
         }
 
-        // for (uint stack = 0; stack < verticesPerStack; stack++)
-        // {
-        //   // line down
-        //   if (stack < verticesPerStack - 1){
-        //     indices.Add(stackFirstVertexIndex + stack);
-        //     indices.Add(stackFirstVertexIndex + stack + 1);
-        //   }
+        for (uint stack = 0; stack < verticesPerStack - 1; stack++)
+        {
+          // bottom left triangle
+          indices.Add(stackFirstVertexIndex + stack);
+          indices.Add(stackFirstVertexIndex + stack + 1);
+          if (sector < sectorCount - 1)
+          {
+            indices.Add(stackFirstVertexIndex + stack + 1 + verticesPerStack);
+          }
+          else
+          {
+            indices.Add(SOUTH_POLE + 1 + stack + 1);
+          }
 
-        //   // line across
-        //   if (sector < sectorCount - 1)
-        //   {
-        //     indices.Add(stackFirstVertexIndex + stack);
-        //     indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
-        //   }
-        //   else
-        //   {
-        //     indices.Add(stackFirstVertexIndex + stack);
-        //     indices.Add(SOUTH_POLE + 1 + stack);
-        //   }
-        // }
+          // top right triangle
+          if (sector < sectorCount - 1) {
+            indices.Add(stackFirstVertexIndex + stack + verticesPerStack);
+            indices.Add(stackFirstVertexIndex + stack + verticesPerStack + 1);
+          }
+          else
+          {
+            indices.Add(SOUTH_POLE + 1 + stack + verticesPerStack);
+            indices.Add(SOUTH_POLE + 1 + stack + verticesPerStack + 1);
+          }
+          indices.Add(stackFirstVertexIndex + stack);
+        }
 
         // triangle to north pole
         indices.Add(NORTH_POLE);
