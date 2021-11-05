@@ -65,7 +65,8 @@ namespace RocketGraphics
         _earthRadius * _worldUnitsPerMetre,
         20,
         10,
-        new Vector4(0f, 1f, 0f, 1f)
+        new Vector4(0f, 1f, 0f, 1f),
+        "resources/textures/8k_earth_daymap.jpg"
       );
       _earthSphere.Initialise();
 
@@ -73,7 +74,8 @@ namespace RocketGraphics
         _earthRadius * _worldUnitsPerMetre / 20,
         10,
         6,
-        new Vector4(1f, 1f, 1f, 1f)
+        new Vector4(1f, 1f, 1f, 1f),
+        "resources/textures/8k_earth_daymap.jpg"
       );
       _rocketSphere.Initialise();
 

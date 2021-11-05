@@ -12,35 +12,51 @@ namespace RocketGraphics
     private uint _stackCount;
     private float[] _vertices;
     private uint[] _indices;
+    private bool _textured = false;
+    private string _texturePath;
     private int _vertexBufferObject;
     private int _vertexArrayObject;
     private int _elementBufferObject;
     private Vector4 _colour;
-    private Shader _shader { get; set; }
+    private Shader _shader;
+    private Texture _texture;
     int _modelUniformLocation;
     int _viewUniformLocation;
     int _projectionUniformLocation;
     int _colourUniformLocation;
+    int _textureUniformLocation;
     private Matrix4 _model;
     public Matrix4 Model {
       get => _model;
       set => _model = value;
     }
 
-    public static float[] GenerateVertexArray(float radius, uint sectorCount, uint stackCount)
+    public static float[] GenerateVertexArray(float radius, uint sectorCount, uint stackCount, bool withTexture = false)
     {
       List<float> vertices = new List<float>();
+      float sectorTextureAmount = 1f / sectorCount;
       float sectorAngle = 2 * MathF.PI / sectorCount;
+      float stackTextureAmount = 1f / stackCount;
       float stackAngle = MathF.PI / stackCount;
 
       // vertices at the poles
       vertices.Add(0);
       vertices.Add(0);
       vertices.Add(radius);
+      if (withTexture)
+      {
+        vertices.Add(0.5f);
+        vertices.Add(1.0f);
+      }
 
       vertices.Add(0);
       vertices.Add(0);
       vertices.Add(-radius);
+      if (withTexture)
+      {
+        vertices.Add(0.5f);
+        vertices.Add(0.0f);
+      }
 
       for (uint sector = 0; sector < sectorCount; sector++)
       {
@@ -52,6 +68,11 @@ namespace RocketGraphics
           vertices.Add(radius * MathF.Cos(phi) * MathF.Cos(theta));
           vertices.Add(radius * MathF.Cos(phi) * MathF.Sin(theta));
           vertices.Add(radius * MathF.Sin(phi));
+          if (withTexture)
+          {
+            vertices.Add(sector * sectorTextureAmount);
+            vertices.Add(stack * stackTextureAmount);
+          }
         }
       }
 
@@ -172,7 +193,7 @@ namespace RocketGraphics
 
     public float[] GenerateVertexArray()
     {
-      return GenerateVertexArray(_radius, _sectorCount, _stackCount);
+      return GenerateVertexArray(_radius, _sectorCount, _stackCount, _textured);
     }
 
     public uint[] GenerateLinesIndexArray()
@@ -185,11 +206,13 @@ namespace RocketGraphics
       return GenerateTrianglesIndexArray(_sectorCount, _stackCount);
     }
 
-    public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour)
+    public Sphere(float radius, uint sectorCount, uint stackCount, Vector4 colour, string texturePath)
     {
       _radius = radius;
       _sectorCount = sectorCount;
       _stackCount = stackCount;
+      _textured = true;
+      _texturePath = texturePath;
       _vertices = GenerateVertexArray();
       _indices = GenerateTrianglesIndexArray();
       Model = Matrix4.Identity;
@@ -209,16 +232,6 @@ namespace RocketGraphics
 
       _vertexArrayObject = GL.GenVertexArray();
       GL.BindVertexArray(_vertexArrayObject);
-      GL.VertexAttribPointer(
-        0,
-        3,
-        VertexAttribPointerType.Float,
-        false,
-        3 * sizeof(float),
-        0
-      );
-
-      GL.EnableVertexAttribArray(0);
 
       _elementBufferObject = GL.GenBuffer();
       GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
@@ -229,17 +242,47 @@ namespace RocketGraphics
         BufferUsageHint.StaticDraw
       );
 
+      // _shader = new Shader(
+      //   @"
+      //     #version 330 core
+      //     layout (location = 0) in vec3 aPos;
+
+      //     uniform mat4 model;
+      //     uniform mat4 view;
+      //     uniform mat4 projection;
+
+      //     void main()
+      //     {
+      //       gl_Position = vec4(aPos, 1.0) * model * view * projection;
+      //     }
+      //   ",
+      //   @"
+      //     #version 330 core
+      //     out vec4 outColour;
+
+      //     uniform vec4 colour;
+
+      //     void main()
+      //     {
+      //       outColour = colour;
+      //     }
+      //   "
+      // );
       _shader = new Shader(
         @"
           #version 330 core
           layout (location = 0) in vec3 aPos;
+          layout (location = 1) in vec2 aTex;
 
           uniform mat4 model;
           uniform mat4 view;
           uniform mat4 projection;
 
+          out vec2 tex;
+
           void main()
           {
+            tex = aTex;
             gl_Position = vec4(aPos, 1.0) * model * view * projection;
           }
         ",
@@ -247,11 +290,13 @@ namespace RocketGraphics
           #version 330 core
           out vec4 outColour;
 
-          uniform vec4 colour;
+          in vec2 tex;
+
+          uniform sampler2D texture0;
 
           void main()
           {
-            outColour = colour;
+            outColour = texture(texture0, tex);
           }
         "
       );
@@ -259,7 +304,33 @@ namespace RocketGraphics
       _modelUniformLocation = GL.GetUniformLocation(_shader.Handle, "model");
       _viewUniformLocation = GL.GetUniformLocation(_shader.Handle, "view");
       _projectionUniformLocation = GL.GetUniformLocation(_shader.Handle, "projection");
-      _colourUniformLocation = GL.GetUniformLocation(_shader.Handle, "colour");
+      // _colourUniformLocation = GL.GetUniformLocation(_shader.Handle, "colour");
+      _textureUniformLocation = GL.GetUniformLocation(_shader.Handle, "texture0");
+
+      var vertexLocation = GL.GetAttribLocation(_shader.Handle, "aPos");
+      GL.EnableVertexAttribArray(vertexLocation);
+      GL.VertexAttribPointer(
+        vertexLocation,
+        3,
+        VertexAttribPointerType.Float,
+        false,
+        5 * sizeof(float),
+        0
+      );
+
+      var texCoordLocation = GL.GetAttribLocation(_shader.Handle, "aTex");
+      GL.EnableVertexAttribArray(texCoordLocation);
+      GL.VertexAttribPointer(
+        texCoordLocation,
+        2,
+        VertexAttribPointerType.Float,
+        false,
+        5 * sizeof(float),
+        3 * sizeof(float)
+      );
+
+      _texture = Texture.LoadFromFile(_texturePath);
+      _texture.Use(TextureUnit.Texture0);
     }
 
     public void Render(Matrix4 view, Matrix4 projection)
@@ -268,7 +339,7 @@ namespace RocketGraphics
       GL.UniformMatrix4(_modelUniformLocation, true, ref _model);
       GL.UniformMatrix4(_viewUniformLocation, true, ref view);
       GL.UniformMatrix4(_projectionUniformLocation, true, ref projection);
-      GL.Uniform4(_colourUniformLocation, ref _colour);
+      // GL.Uniform4(_colourUniformLocation, ref _colour);
 
       GL.BindVertexArray(_vertexArrayObject);
       GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
