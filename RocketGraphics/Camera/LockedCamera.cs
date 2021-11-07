@@ -9,11 +9,11 @@ namespace RocketGraphics.Camera
     private Vector3 _origin;
     private float _distanceFromOrigin = 2f;
     private float _xyRotation = 0f; // 0 to 2*pi radians, clockwise from the top
-    private float _verticalRotation = 0f; // -pi/2 to pi/2 radians, with positive angle being above the xy plane
+    private float _verticalRotation = 0f; // -(pi/2 - 0.01) to (pi/2 - 0.01) radians, with positive angle being above the xy plane
 
-    private Vector3 _cameraPosition => _origin + Vector3.Transform(
+    private Vector3 _cameraPosition => _origin + Vector3.TransformVector(
       -Vector3.UnitY * _distanceFromOrigin,
-      new Quaternion(-_verticalRotation, 0, -_xyRotation)
+      Matrix4.CreateRotationX(-_verticalRotation) * Matrix4.CreateRotationZ(-_xyRotation)
     );
 
     // camera properties
@@ -36,9 +36,26 @@ namespace RocketGraphics.Camera
 
     public Matrix4 ProjectionMatrix => Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, _nearClipping, _farClipping);
 
-    public void RotateXY(float rotation)
+    public void RotateXY(float angle)
     {
-      _xyRotation += rotation;
+      _xyRotation += angle;
+      while (_xyRotation >= MathHelper.TwoPi)
+      {
+        _xyRotation -= MathHelper.TwoPi;
+      }
+      while (_xyRotation < 0)
+      {
+        _xyRotation += MathHelper.TwoPi;
+      }
+    }
+
+    public void RotateVertical(float angle)
+    {
+      _verticalRotation = MathHelper.Clamp(
+        _verticalRotation + angle,
+        -MathHelper.PiOver2 + 0.01f,
+        MathHelper.PiOver2 - 0.01f
+      );
     }
 
     public LockedCamera(Vector3 origin, float aspectRatio)

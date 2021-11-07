@@ -26,8 +26,8 @@ namespace RocketGraphics
 
     // common rendering
     private LockedCamera _camera;
-    private float _horizontalCameraSensitivity = 1f;
-    private float _verticalCameraSensitivity = 1f;
+    private float _horizontalCameraSensitivity = 1e-2f;
+    private float _verticalCameraSensitivity = 1e-2f;
 
     // mouse input
     private bool _firstMove = true;
@@ -93,6 +93,7 @@ namespace RocketGraphics
       _issModel.Initialise();
 
       _camera = new LockedCamera(Vector3.Zero, AspectRatio);
+      CursorGrabbed = true;
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -158,6 +159,7 @@ namespace RocketGraphics
         _lastMousePosition = new Vector2(mouse.X, mouse.Y);
 
         _camera.RotateXY(-mouseDeltaX * _horizontalCameraSensitivity);
+        _camera.RotateVertical(-mouseDeltaY * _verticalCameraSensitivity);
       }
     }
 
