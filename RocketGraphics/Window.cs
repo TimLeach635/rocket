@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using System.Collections.Generic;
 using RocketEngine;
 using System;
+using RocketGraphics.Camera;
 
 namespace RocketGraphics
 {
@@ -24,8 +25,13 @@ namespace RocketGraphics
     private Texture _issTexture;
 
     // common rendering
-    private Matrix4 _view;
-    private Matrix4 _projection;
+    private LockedCamera _camera;
+    private float _horizontalCameraSensitivity = 1f;
+    private float _verticalCameraSensitivity = 1f;
+
+    // mouse input
+    private bool _firstMove = true;
+    private Vector2 _lastMousePosition;
 
     // simulation
     private Stopwatch _timer;
@@ -33,6 +39,8 @@ namespace RocketGraphics
     private OriginEarth _earth;
     private List<IGravitator> _gravitators;
     private Rocket _rocket;
+
+    public float AspectRatio => Size.X / (float)Size.Y;
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -84,6 +92,8 @@ namespace RocketGraphics
       );
       _issModel.Initialise();
 
+      _camera = new LockedCamera(Vector3.Zero, AspectRatio);
+
       _timer = new Stopwatch();
       _timer.Start();
     }
@@ -107,20 +117,16 @@ namespace RocketGraphics
         _rocket.Position.Y * _worldUnitsPerMetre,
         _rocket.Position.Z * _worldUnitsPerMetre
       );
-      _earthSphere.Model *= Matrix4.CreateRotationZ((float)elapsed / 5);
 
-      _view = Matrix4.Identity;
-      _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));
-      _view *= Matrix4.CreateTranslation(0f, 0f, -2f);
-
-      _projection = Matrix4.Identity;
-      _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
+      // camera
+      Matrix4 view = _camera.ViewMatrix;
+      Matrix4 projection = _camera.ProjectionMatrix;
 
       // render earth
-      _earthSphere.Render(_view, _projection);
+      _earthSphere.Render(view, projection);
 
       // render rocket
-      _issModel.Render(_view, _projection);
+      _issModel.Render(view, projection);
 
       SwapBuffers();
     }
@@ -129,11 +135,29 @@ namespace RocketGraphics
     {
       base.OnUpdateFrame(e);
 
-      var input = KeyboardState;
+      if (!IsFocused) return;
 
-      if (input.IsKeyDown(Keys.Escape))
+      var keyboard = KeyboardState;
+
+      if (keyboard.IsKeyDown(Keys.Escape))
       {
         Close();
+      }
+
+      var mouse = MouseState;
+
+      if (_firstMove)
+      {
+        _lastMousePosition = new Vector2(mouse.X, mouse.Y);
+        _firstMove = false;
+      }
+      else
+      {
+        var mouseDeltaX = mouse.X - _lastMousePosition.X;
+        var mouseDeltaY = mouse.Y - _lastMousePosition.Y;
+        _lastMousePosition = new Vector2(mouse.X, mouse.Y);
+
+        _camera.RotateXY(-mouseDeltaX * _horizontalCameraSensitivity);
       }
     }
 
@@ -141,6 +165,7 @@ namespace RocketGraphics
     {
       base.OnResize(e);
       GL.Viewport(0, 0, Size.X, Size.Y);
+      _camera.AspectRatio = AspectRatio;
     }
   }
 }
