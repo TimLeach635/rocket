@@ -129,6 +129,11 @@ namespace RocketGraphics
       );
 
       // camera
+      _camera.Origin = new Vector3(
+        _rocket.Position.X * _worldUnitsPerMetre,
+        _rocket.Position.Y * _worldUnitsPerMetre,
+        _rocket.Position.Z * _worldUnitsPerMetre
+      );
       Matrix4 view = _camera.ViewMatrix;
       Matrix4 projection = _camera.ProjectionMatrix;
 

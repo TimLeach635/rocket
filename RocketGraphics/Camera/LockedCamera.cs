@@ -6,12 +6,12 @@ namespace RocketGraphics.Camera
   public class LockedCamera
   {
     // camera position
-    private Vector3 _origin;
+    public Vector3 Origin { get; set; }
     private float _distanceFromOrigin = 2f;
     private float _xyRotation = 0f; // 0 to 2*pi radians, clockwise from the top
     private float _verticalRotation = 0f; // -(pi/2 - 0.01) to (pi/2 - 0.01) radians, with positive angle being above the xy plane
 
-    private Vector3 _cameraPosition => _origin + Vector3.TransformVector(
+    private Vector3 _cameraPosition => Origin + Vector3.TransformVector(
       -Vector3.UnitY * _distanceFromOrigin,
       Matrix4.CreateRotationX(-_verticalRotation) * Matrix4.CreateRotationZ(-_xyRotation)
     );
@@ -32,7 +32,7 @@ namespace RocketGraphics.Camera
     }
     public float AspectRatio { get; set; }
 
-    public Matrix4 ViewMatrix => Matrix4.LookAt(_cameraPosition, _origin, Vector3.UnitZ);
+    public Matrix4 ViewMatrix => Matrix4.LookAt(_cameraPosition, Origin, Vector3.UnitZ);
 
     public Matrix4 ProjectionMatrix => Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, _nearClipping, _farClipping);
 
@@ -60,7 +60,7 @@ namespace RocketGraphics.Camera
 
     public LockedCamera(Vector3 origin, float aspectRatio)
     {
-      _origin = origin;
+      Origin = origin;
       AspectRatio = aspectRatio;
     }
   }
