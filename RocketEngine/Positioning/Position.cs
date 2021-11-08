@@ -4,7 +4,7 @@ namespace RocketEngine.Positioning
 {
   /// A Position is intended to represent a specific, unambiguous position in
   /// three-dimensional space.
-  /// Internally, it uses double-precision floats to define positions relative
+  /// Internally, it uses double-precision floats to define positions in metres relative
   /// to the barycenter of the solar system. For the timescales used in this
   /// program, this can be considered an inertial reference frame. The orientation
   /// of the axes is that of the ICRS: the xy plane is (approximately) that of the
