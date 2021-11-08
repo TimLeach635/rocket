@@ -1,3 +1,4 @@
+using RocketEngine.Positioning;
 using RocketEngine.Simulation;
 using System;
 using System.Collections.Generic;
@@ -9,24 +10,24 @@ namespace RocketEngine.Bodies
   {
     private TimeSpan _minimumTimestep = TimeSpan.FromDays(1f);
     private DateTime _currentTime;
-    private Vector3 _position;
+    private Position _position;
     private Vector3 _velocity;
 
     public ICollection<IGravitator> Gravitators { get; set; }
 
-    public Vector3 Position => _position;
+    public Position Position => _position;
 
     public DateTime CurrentTime => _currentTime;
 
     private void ExplicitEuclidStep(TimeSpan timestep)
       {
         // update location
-        _position += (float)timestep.TotalSeconds * _velocity;
+        _position.ChangeBy((float)timestep.TotalSeconds * _velocity);
 
         // update velocity
         foreach (IGravitator gravitator in Gravitators)
         {
-          Vector3 difference = gravitator.Position - _position;
+          Vector3 difference = gravitator.Position.ICRSVectorf - _position.ICRSVectorf;
           float distance = (float)Math.Sqrt((double)Vector3.Dot(difference, difference));
           Vector3 unitDirection = difference * (1 / distance);
           Vector3 acceleration = unitDirection * (gravitator.StandardGravitationalParameter / (distance * distance));
@@ -47,7 +48,7 @@ namespace RocketEngine.Bodies
       _currentTime += timestep;
     }
 
-    public Craft(DateTime initialTime, Vector3 initialPosition, Vector3 initialVelocity)
+    public Craft(DateTime initialTime, Position initialPosition, Vector3 initialVelocity)
     {
       _currentTime = initialTime;
       _position = initialPosition;

@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using RocketEngine.Positioning;
 
 namespace RocketEngine.Bodies
 {
@@ -7,7 +8,7 @@ namespace RocketEngine.Bodies
   {
     private DateTime _currentTime;
 
-    public Vector3 Position { get; }
+    public Position Position { get; }
     public float Mass { get; }
     public float StandardGravitationalParameter => Mass * Constants.BIG_G;
 
@@ -18,7 +19,7 @@ namespace RocketEngine.Bodies
       _currentTime += timestep;
     }
 
-    public StaticPlanet(DateTime initialTime, Vector3 position, float mass)
+    public StaticPlanet(DateTime initialTime, Position position, float mass)
     {
       _currentTime = initialTime;
       Position = position;

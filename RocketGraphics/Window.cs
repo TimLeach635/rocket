@@ -157,24 +157,24 @@ namespace RocketGraphics
 
       // transform
       _mercurySphere.Model = Matrix4.CreateTranslation(
-        _simulation.Mercury.Position.X * _worldUnitsPerMetre,
-        _simulation.Mercury.Position.Y * _worldUnitsPerMetre,
-        _simulation.Mercury.Position.Z * _worldUnitsPerMetre
+        (float)_simulation.Mercury.Position.X * _worldUnitsPerMetre,
+        (float)_simulation.Mercury.Position.Y * _worldUnitsPerMetre,
+        (float)_simulation.Mercury.Position.Z * _worldUnitsPerMetre
       );
       _venusSphere.Model = Matrix4.CreateTranslation(
-        _simulation.Venus.Position.X * _worldUnitsPerMetre,
-        _simulation.Venus.Position.Y * _worldUnitsPerMetre,
-        _simulation.Venus.Position.Z * _worldUnitsPerMetre
+        (float)_simulation.Venus.Position.X * _worldUnitsPerMetre,
+        (float)_simulation.Venus.Position.Y * _worldUnitsPerMetre,
+        (float)_simulation.Venus.Position.Z * _worldUnitsPerMetre
       );
       _earthSphere.Model = Matrix4.CreateTranslation(
-        _simulation.Earth.Position.X * _worldUnitsPerMetre,
-        _simulation.Earth.Position.Y * _worldUnitsPerMetre,
-        _simulation.Earth.Position.Z * _worldUnitsPerMetre
+        (float)_simulation.Earth.Position.X * _worldUnitsPerMetre,
+        (float)_simulation.Earth.Position.Y * _worldUnitsPerMetre,
+        (float)_simulation.Earth.Position.Z * _worldUnitsPerMetre
       );
       _marsSphere.Model = Matrix4.CreateTranslation(
-        _simulation.Mars.Position.X * _worldUnitsPerMetre,
-        _simulation.Mars.Position.Y * _worldUnitsPerMetre,
-        _simulation.Mars.Position.Z * _worldUnitsPerMetre
+        (float)_simulation.Mars.Position.X * _worldUnitsPerMetre,
+        (float)_simulation.Mars.Position.Y * _worldUnitsPerMetre,
+        (float)_simulation.Mars.Position.Z * _worldUnitsPerMetre
       );
 
       _sunSphere.Render(view, projection);

@@ -1,11 +1,11 @@
 using System;
-using System.Numerics;
+using RocketEngine.Positioning;
 
 namespace RocketEngine.Bodies
 {
   public interface IBody
   {
-    Vector3 Position { get; }
+    Position Position { get; }
     DateTime CurrentTime { get; }
     void Update(TimeSpan timestep);
   }

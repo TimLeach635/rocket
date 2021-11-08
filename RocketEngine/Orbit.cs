@@ -1,4 +1,5 @@
 using RocketEngine.Bodies;
+using RocketEngine.Positioning;
 using System;
 using System.Numerics;
 
@@ -79,7 +80,7 @@ namespace RocketEngine
       return eccentricAnomaly;
     }
 
-    public Vector3 GetPositionFromGravitator(IGravitator centralBody, DateTime time)
+    public Position GetPositionFromGravitator(IGravitator centralBody, DateTime time)
     {
       // adapted from https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
       // for now, we use the x-y plane as our reference plane, and the positive x-axis as our vernal point.
@@ -117,7 +118,7 @@ namespace RocketEngine
 
       Vector3 inertialFramePosition = Vector3.Transform(orbitalFramePosition, rotation);
 
-      return inertialFramePosition;
+      return new Position(inertialFramePosition);
     }
 
     public Vector3 GetVelocityFromGravitator(IGravitator centralBody, DateTime time)
