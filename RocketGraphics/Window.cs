@@ -26,8 +26,9 @@ namespace RocketGraphics
 
     // common rendering
     private LockedCamera _camera;
-    private float _horizontalCameraSensitivity = 5e-3f;
-    private float _verticalCameraSensitivity = 5e-3f;
+    private float _cameraHorizontalSensitivity = 5e-3f;
+    private float _cameraVerticalSensitivity = 5e-3f;
+    private float _cameraZoomSensitivity = 1e-1f;
 
     // mouse input
     private bool _firstMove = true;
@@ -178,13 +179,19 @@ namespace RocketGraphics
       if (mouse.IsButtonDown(MouseButton.Right))
       {
         GrabCursor();
-        if (mouseDeltaX != 0) _camera.RotateXY(mouseDeltaX * _horizontalCameraSensitivity);
-        if (mouseDeltaY != 0) _camera.RotateVertical(mouseDeltaY * _verticalCameraSensitivity);
+        if (mouseDeltaX != 0) _camera.RotateXY(mouseDeltaX * _cameraHorizontalSensitivity);
+        if (mouseDeltaY != 0) _camera.RotateVertical(mouseDeltaY * _cameraVerticalSensitivity);
       }
       else
       {
         ReleaseCursor();
       }
+    }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+      base.OnMouseWheel(e);
+      _camera.ZoomIn(e.OffsetY * _cameraZoomSensitivity);
     }
 
     protected override void OnResize(ResizeEventArgs e)

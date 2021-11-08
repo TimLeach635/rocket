@@ -8,6 +8,8 @@ namespace RocketGraphics.Camera
     // camera position
     public Vector3 Origin { get; set; }
     private float _distanceFromOrigin = 2f;
+    private float _minimumDistance = 0.2f;
+    private float _maximumDistance = 5f;
     private float _xyRotation = 0f; // 0 to 2*pi radians, clockwise from the top
     private float _verticalRotation = 0f; // -(pi/2 - 0.01) to (pi/2 - 0.01) radians, with positive angle being above the xy plane
 
@@ -55,6 +57,15 @@ namespace RocketGraphics.Camera
         _verticalRotation + angle,
         -MathHelper.PiOver2 + 0.01f,
         MathHelper.PiOver2 - 0.01f
+      );
+    }
+
+    public void ZoomIn(float amount)
+    {
+      _distanceFromOrigin = MathHelper.Clamp(
+        _distanceFromOrigin - amount,
+        _minimumDistance,
+        _maximumDistance
       );
     }
 
