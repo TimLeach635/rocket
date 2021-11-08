@@ -7,6 +7,7 @@ using RocketEngine;
 using RocketEngine.Simulation.Specific;
 using System;
 using System.Diagnostics;
+using RocketGraphics.Camera;
 
 namespace RocketGraphics
 {
@@ -15,19 +16,46 @@ namespace RocketGraphics
     private float _worldUnitsPerMetre = 4e-11f;
 
     private Sphere _sunSphere;
+    private Texture _sunTexture;
+
     private Sphere _mercurySphere;
+    private Texture _mercuryTexture;
+
     private Sphere _venusSphere;
+    private Texture _venusTexture;
+
     private Sphere _earthSphere;
+    private Texture _earthTexture;
+
     private Sphere _marsSphere;
+    private Texture _marsTexture;
 
     // common rendering
-    private Matrix4 _view;
-    private Matrix4 _projection;
+    private LockedCamera _camera;
+    private float _cameraHorizontalSensitivity = 5e-3f;
+    private float _cameraVerticalSensitivity = 5e-3f;
+    private float _cameraZoomSensitivity = 1e-1f;
+
+    // mouse input
+    private bool _firstMove = true;
+    private Vector2 _lastMousePosition;
 
     // simulation
     private Stopwatch _timer;
     private float _simDaysPerRealSecond = 50f;
     private InnerPlanets _simulation;
+
+    public float AspectRatio => Size.X / (float)Size.Y;
+
+    private void GrabCursor()
+    {
+      if (!CursorGrabbed) CursorGrabbed = true;
+    }
+
+    private void ReleaseCursor()
+    {
+      if (!CursorVisible) CursorVisible = true;
+    }
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -45,45 +73,67 @@ namespace RocketGraphics
       float sunScale = 20;
       float planetScale = 500;
 
+      _sunTexture = Texture.LoadFromFile("resources/textures/8k_sun.jpg");
+      _sunTexture.Use(TextureUnit.Texture0);
       _sunSphere = new Sphere(
         Constants.SUN_RADIUS * _worldUnitsPerMetre * sunScale,
-        10,
-        6,
-        new Vector4(1f, 1f, 0f, 1f)
+        200,
+        100,
+        new Vector4(1f, 1f, 0f, 1f),
+        _sunTexture,
+        TextureUnit.Texture0
       );
       _sunSphere.Initialise();
 
+      _mercuryTexture = Texture.LoadFromFile("resources/textures/8k_mercury.jpg");
+      _mercuryTexture.Use(TextureUnit.Texture1);
       _mercurySphere = new Sphere(
         Constants.MERCURY_RADIUS * _worldUnitsPerMetre * planetScale,
-        10,
-        6,
-        new Vector4(0.8f, 0.5f, 0.5f, 1f)
+        200,
+        100,
+        new Vector4(0.8f, 0.5f, 0.5f, 1f),
+        _mercuryTexture,
+        TextureUnit.Texture1
       );
       _mercurySphere.Initialise();
 
+      _venusTexture = Texture.LoadFromFile("resources/textures/4k_venus_atmosphere.jpg");
+      _venusTexture.Use(TextureUnit.Texture2);
       _venusSphere = new Sphere(
         Constants.VENUS_RADIUS * _worldUnitsPerMetre * planetScale,
-        10,
-        6,
-        new Vector4(1f, 0.8f, 0.8f, 1f)
+        200,
+        100,
+        new Vector4(1f, 0.8f, 0.8f, 1f),
+        _venusTexture,
+        TextureUnit.Texture2
       );
       _venusSphere.Initialise();
 
+      _earthTexture = Texture.LoadFromFile("resources/textures/8k_earth_daymap.jpg");
+      _earthTexture.Use(TextureUnit.Texture3);
       _earthSphere = new Sphere(
         Constants.EARTH_RADIUS * _worldUnitsPerMetre * planetScale,
-        10,
-        6,
-        new Vector4(0f, 1f, 0f, 1f)
+        200,
+        100,
+        new Vector4(0f, 1f, 0f, 1f),
+        _earthTexture,
+        TextureUnit.Texture3
       );
       _earthSphere.Initialise();
 
+      _marsTexture = Texture.LoadFromFile("resources/textures/8k_mars.jpg");
+      _marsTexture.Use(TextureUnit.Texture4);
       _marsSphere = new Sphere(
         Constants.MARS_RADIUS * _worldUnitsPerMetre * planetScale,
-        10,
-        6,
-        new Vector4(1f, 0f, 0f, 1f)
+        200,
+        100,
+        new Vector4(1f, 0f, 0f, 1f),
+        _marsTexture,
+        TextureUnit.Texture4
       );
       _marsSphere.Initialise();
+
+      _camera = new LockedCamera(Vector3.Zero, AspectRatio);
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -100,6 +150,10 @@ namespace RocketGraphics
       _timer.Restart();
       TimeSpan simElapsed = elapsed * _simDaysPerRealSecond * 86400;
       _simulation.Simulation.Update(simElapsed);
+
+      // camera
+      Matrix4 view = _camera.ViewMatrix;
+      Matrix4 projection = _camera.ProjectionMatrix;
 
       // transform
       _mercurySphere.Model = Matrix4.CreateTranslation(
@@ -123,18 +177,11 @@ namespace RocketGraphics
         _simulation.Mars.Position.Z * _worldUnitsPerMetre
       );
 
-      _view = Matrix4.Identity;
-      _view *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-70f));
-      _view *= Matrix4.CreateTranslation(0f, 0f, -17f);
-
-      _projection = Matrix4.Identity;
-      _projection *= Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100.0f);
-
-      _sunSphere.Render(_view, _projection);
-      _mercurySphere.Render(_view, _projection);
-      _venusSphere.Render(_view, _projection);
-      _earthSphere.Render(_view, _projection);
-      _marsSphere.Render(_view, _projection);
+      _sunSphere.Render(view, projection);
+      _mercurySphere.Render(view, projection);
+      _venusSphere.Render(view, projection);
+      _earthSphere.Render(view, projection);
+      _marsSphere.Render(view, projection);
 
       SwapBuffers();
     }
@@ -143,18 +190,54 @@ namespace RocketGraphics
     {
       base.OnUpdateFrame(e);
 
-      var input = KeyboardState;
+      if (!IsFocused) return;
 
-      if (input.IsKeyDown(Keys.Escape))
+      var keyboard = KeyboardState;
+
+      if (keyboard.IsKeyDown(Keys.Escape))
       {
         Close();
       }
+
+      var mouse = MouseState;
+      float mouseDeltaX = 0f;
+      float mouseDeltaY = 0f;
+      
+      if (_firstMove)
+      {
+        _lastMousePosition = new Vector2(mouse.X, mouse.Y);
+        _firstMove = false;
+      }
+      else
+      {
+        mouseDeltaX = mouse.X - _lastMousePosition.X;
+        mouseDeltaY = mouse.Y - _lastMousePosition.Y;
+        _lastMousePosition = new Vector2(mouse.X, mouse.Y);
+      }
+
+      if (mouse.IsButtonDown(MouseButton.Right))
+      {
+        GrabCursor();
+        if (mouseDeltaX != 0) _camera.RotateXY(mouseDeltaX * _cameraHorizontalSensitivity);
+        if (mouseDeltaY != 0) _camera.RotateVertical(mouseDeltaY * _cameraVerticalSensitivity);
+      }
+      else
+      {
+        ReleaseCursor();
+      }
+    }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+      base.OnMouseWheel(e);
+      _camera.ZoomIn(e.OffsetY * _cameraZoomSensitivity);
     }
 
     protected override void OnResize(ResizeEventArgs e)
     {
       base.OnResize(e);
       GL.Viewport(0, 0, Size.X, Size.Y);
+      _camera.AspectRatio = AspectRatio;
     }
   }
 }
