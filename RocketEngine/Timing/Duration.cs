@@ -1,4 +1,5 @@
 using System;
+using RocketEngine.Simulation;
 
 namespace RocketEngine.Timing
 {
@@ -16,11 +17,6 @@ namespace RocketEngine.Timing
     // a "tick" in the context of C# is 100 nanoseconds (0.1 microseconds)
     public double Ticks => _seconds * 1e7;
     public double Nanoseconds => _seconds * 1e9;
-
-    public TimeSpan GetScaled(double realSecondsPerSimSecond)
-    {
-      return new TimeSpan((long)Ticks);
-    }
 
     public Duration(double seconds)
     {

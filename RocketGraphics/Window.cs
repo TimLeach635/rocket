@@ -148,8 +148,8 @@ namespace RocketGraphics
       // timing
       TimeSpan elapsed = _timer.Elapsed;
       _timer.Restart();
-      TimeSpan simElapsed = elapsed * _simDaysPerRealSecond * 86400;
-      _simulation.Simulation.Update(simElapsed);
+      double simElapsed = elapsed.TotalSeconds * _simDaysPerRealSecond * 86400;
+      _simulation.Simulation.SimulateSeconds(simElapsed);
 
       // camera
       Matrix4 view = _camera.ViewMatrix;

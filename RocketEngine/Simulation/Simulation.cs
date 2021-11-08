@@ -5,6 +5,15 @@ using System.Linq;
 
 namespace RocketEngine.Simulation
 {
+  public enum SimulationTimeScale
+  {
+    RealTime = 1,
+    DoubleSpeed = 2,
+    MinutesPerSecond = 60,
+    HoursPerSecond = 3600,
+    DaysPerSecond = 86400,
+  }
+
   public class Simulation
   {
     private TimeSpan _minimumTimestep = TimeSpan.FromSeconds(1f);
@@ -12,6 +21,7 @@ namespace RocketEngine.Simulation
     private ICollection<IGravitator> _gravitators;
     private ICollection<IGravitatee> _gravitatees;
 
+    public SimulationTimeScale TimeScale { get; set; }
     public ICollection<IBody> Bodies => _bodies;
     public ICollection<IGravitator> Gravitators => _gravitators;
     public ICollection<IGravitatee> Gravitatees => _gravitatees;
@@ -40,17 +50,18 @@ namespace RocketEngine.Simulation
       }
     }
 
-    public void Update(TimeSpan timestep)
+    public void SimulateSeconds(double seconds)
     {
-      TimeSpan timeSimulated = new TimeSpan(0);
-      while (timeSimulated < timestep)
+      // the idea is that each simulation should be able to be done in a fraction of a second.
+      int numberOfSteps = 1000;
+      double simSecondsPerStep = seconds / (double)numberOfSteps;
+      TimeSpan timeSpanPerStep = new TimeSpan((long)(simSecondsPerStep * 1e7));
+      for (int i = 0; i < numberOfSteps; i++)
       {
-        TimeSpan nextTimestep = SimulationHelper.Min(_minimumTimestep, timestep - timeSimulated);
         foreach (IBody body in Bodies)
         {
-          body.Update(nextTimestep);
+          body.Update(timeSpanPerStep);
         }
-        timeSimulated += nextTimestep;
       }
 
       SyncCheck();
