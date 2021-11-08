@@ -26,8 +26,8 @@ namespace RocketGraphics
 
     // common rendering
     private LockedCamera _camera;
-    private float _horizontalCameraSensitivity = 1e-2f;
-    private float _verticalCameraSensitivity = 1e-2f;
+    private float _horizontalCameraSensitivity = 5e-3f;
+    private float _verticalCameraSensitivity = 5e-3f;
 
     // mouse input
     private bool _firstMove = true;
@@ -41,6 +41,16 @@ namespace RocketGraphics
     private Rocket _rocket;
 
     public float AspectRatio => Size.X / (float)Size.Y;
+
+    private void GrabCursor()
+    {
+      if (!CursorGrabbed) CursorGrabbed = true;
+    }
+
+    private void ReleaseCursor()
+    {
+      if (!CursorVisible) CursorVisible = true;
+    }
 
     public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings) {}
@@ -93,7 +103,6 @@ namespace RocketGraphics
       _issModel.Initialise();
 
       _camera = new LockedCamera(Vector3.Zero, AspectRatio);
-      CursorGrabbed = true;
 
       _timer = new Stopwatch();
       _timer.Start();
@@ -146,7 +155,9 @@ namespace RocketGraphics
       }
 
       var mouse = MouseState;
-
+      float mouseDeltaX = 0f;
+      float mouseDeltaY = 0f;
+      
       if (_firstMove)
       {
         _lastMousePosition = new Vector2(mouse.X, mouse.Y);
@@ -154,12 +165,20 @@ namespace RocketGraphics
       }
       else
       {
-        var mouseDeltaX = mouse.X - _lastMousePosition.X;
-        var mouseDeltaY = mouse.Y - _lastMousePosition.Y;
+        mouseDeltaX = mouse.X - _lastMousePosition.X;
+        mouseDeltaY = mouse.Y - _lastMousePosition.Y;
         _lastMousePosition = new Vector2(mouse.X, mouse.Y);
+      }
 
-        _camera.RotateXY(-mouseDeltaX * _horizontalCameraSensitivity);
-        _camera.RotateVertical(-mouseDeltaY * _verticalCameraSensitivity);
+      if (mouse.IsButtonDown(MouseButton.Right))
+      {
+        GrabCursor();
+        if (mouseDeltaX != 0) _camera.RotateXY(mouseDeltaX * _horizontalCameraSensitivity);
+        if (mouseDeltaY != 0) _camera.RotateVertical(mouseDeltaY * _verticalCameraSensitivity);
+      }
+      else
+      {
+        ReleaseCursor();
       }
     }
 
