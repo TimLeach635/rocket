@@ -27,6 +27,11 @@ namespace RocketEngine.Positioning
 
     public Vector3 ICRSVectorf => new Vector3((float)_x, (float)_y, (float)_z);
 
+    public Vector3 OffsetFrom(Position origin)
+    {
+      return ICRSVectorf - origin.ICRSVectorf;
+    }
+
     public void ChangeBy(Vector3 positionChange)
     {
       _x += positionChange.X;
