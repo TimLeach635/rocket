@@ -1,20 +1,16 @@
-﻿using RocketEngine;
-using RocketEngine.Bodies;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 namespace RocketConsole
 {
-  class Program
-  {
-    static float DegreesToRadians(float degrees)
+    internal class Program
     {
-      return degrees * MathF.PI / 180;
-    }
+        private static float DegreesToRadians(float degrees)
+        {
+            return degrees * MathF.PI / 180;
+        }
 
-    static void Main(string[] args)
-    {
-
+        private static void Main(string[] args)
+        {
+        }
     }
-  }
 }

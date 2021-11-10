@@ -1,26 +1,25 @@
-using System;
-using RocketEngine.Simulation;
-
 namespace RocketEngine.Timing
 {
-  public class Duration
-  {
-    // internally represented in seconds
-    private double _seconds;
-
-    public double Days => _seconds / 86400d;
-    public double Hours => _seconds / 3600d;
-    public double Minutes => _seconds / 60d;
-    public double Seconds => _seconds;
-    public double Milliseconds => _seconds * 1e3;
-    public double Microseconds => _seconds * 1e6;
-    // a "tick" in the context of C# is 100 nanoseconds (0.1 microseconds)
-    public double Ticks => _seconds * 1e7;
-    public double Nanoseconds => _seconds * 1e9;
-
-    public Duration(double seconds)
+    public class Duration
     {
-      _seconds = seconds;
+        // internally represented in seconds
+
+        public Duration(double seconds)
+        {
+            Seconds = seconds;
+        }
+
+        public double Days => Seconds / 86400d;
+        public double Hours => Seconds / 3600d;
+        public double Minutes => Seconds / 60d;
+        public double Seconds { get; }
+
+        public double Milliseconds => Seconds * 1e3;
+
+        public double Microseconds => Seconds * 1e6;
+
+        // a "tick" in the context of C# is 100 nanoseconds (0.1 microseconds)
+        public double Ticks => Seconds * 1e7;
+        public double Nanoseconds => Seconds * 1e9;
     }
-  }
 }

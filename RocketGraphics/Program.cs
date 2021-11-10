@@ -4,15 +4,15 @@ using OpenTK.Windowing.Desktop;
 
 namespace RocketGraphics
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var nativeWindowSettings = new NativeWindowSettings()
+            var nativeWindowSettings = new NativeWindowSettings
             {
                 Size = new Vector2i(800, 600),
                 Title = "Rocket",
-                Flags = ContextFlags.ForwardCompatible,
+                Flags = ContextFlags.ForwardCompatible
             };
 
             using (var window = new Window(GameWindowSettings.Default, nativeWindowSettings))

@@ -1,29 +1,26 @@
 using System;
-using System.Numerics;
 using RocketEngine.Positioning;
 
 namespace RocketEngine.Bodies
 {
-  public class StaticPlanet : IGravitator
-  {
-    private DateTime _currentTime;
-
-    public Position Position { get; }
-    public float Mass { get; }
-    public float StandardGravitationalParameter => Mass * Constants.BIG_G;
-
-    public DateTime CurrentTime => _currentTime;
-
-    public void Update(TimeSpan timestep)
+    public class StaticPlanet : IGravitator
     {
-      _currentTime += timestep;
-    }
+        public StaticPlanet(DateTime initialTime, Position position, float mass)
+        {
+            CurrentTime = initialTime;
+            Position = position;
+            Mass = mass;
+        }
 
-    public StaticPlanet(DateTime initialTime, Position position, float mass)
-    {
-      _currentTime = initialTime;
-      Position = position;
-      Mass = mass;
+        public Position Position { get; }
+        public float Mass { get; }
+        public float StandardGravitationalParameter => Mass * Constants.BIG_G;
+
+        public DateTime CurrentTime { get; private set; }
+
+        public void Update(TimeSpan timestep)
+        {
+            CurrentTime += timestep;
+        }
     }
-  }
 }

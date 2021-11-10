@@ -12,38 +12,37 @@ namespace RocketEngine.Positioning
   /// vernal equinox, and the positive z direction the earth's north pole
   /// (forming a right-handed basis).
   public class Position
-  {
-    // I'm considering biting the bullet and using the OpenTK Vector3d for this.
-    // I don't know if it uses hardware acceleration like C#'s native Vector3,
-    // but until they introduce generic vectors into native C# it may be the
-    // best we can do!
-    private double _x;
-    private double _y;
-    private double _z;
-
-    public double X => _x;
-    public double Y => _y;
-    public double Z => _z;
-
-    public Vector3 ICRSVectorf => new Vector3((float)_x, (float)_y, (float)_z);
-
-    public Vector3 OffsetFrom(Position origin)
     {
-      return ICRSVectorf - origin.ICRSVectorf;
-    }
+        // I'm considering biting the bullet and using the OpenTK Vector3d for this.
+        // I don't know if it uses hardware acceleration like C#'s native Vector3,
+        // but until they introduce generic vectors into native C# it may be the
+        // best we can do!
 
-    public void ChangeBy(Vector3 positionChange)
-    {
-      _x += positionChange.X;
-      _y += positionChange.Y;
-      _z += positionChange.Z;
-    }
+        public Position(Vector3 position)
+        {
+            X = position.X;
+            Y = position.Y;
+            Z = position.Z;
+        }
 
-    public Position(Vector3 position)
-    {
-      _x = position.X;
-      _y = position.Y;
-      _z = position.Z;
+        public double X { get; private set; }
+
+        public double Y { get; private set; }
+
+        public double Z { get; private set; }
+
+        public Vector3 ICRSVectorf => new((float) X, (float) Y, (float) Z);
+
+        public Vector3 OffsetFrom(Position origin)
+        {
+            return ICRSVectorf - origin.ICRSVectorf;
+        }
+
+        public void ChangeBy(Vector3 positionChange)
+        {
+            X += positionChange.X;
+            Y += positionChange.Y;
+            Z += positionChange.Z;
+        }
     }
-  }
 }
