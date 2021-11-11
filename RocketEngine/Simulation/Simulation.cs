@@ -17,10 +17,13 @@ namespace RocketEngine.Simulation
     public class Simulation
     {
         private TimeSpan _minimumTimestep = TimeSpan.FromSeconds(1f);
+        private List<IBody> _bodies;
+        private List<IGravitator> _gravitators;
+        private List<IGravitatee> _gravitatees;
 
         public Simulation(ICollection<IBody> bodies)
         {
-            Bodies = bodies;
+            _bodies = bodies.ToList();
 
             try
             {
@@ -43,26 +46,34 @@ namespace RocketEngine.Simulation
         }
 
         public SimulationTimeScale TimeScale { get; set; }
-        public ICollection<IBody> Bodies { get; }
+        public ICollection<IBody> Bodies => _bodies;
 
-        public ICollection<IGravitator> Gravitators { get; private set; }
+        public ICollection<IGravitator> Gravitators
+        {
+            get => _gravitators;
+            private set => _gravitators = value.ToList();
+        }
 
-        public ICollection<IGravitatee> Gravitatees { get; private set; }
+        public ICollection<IGravitatee> Gravitatees
+        {
+            get => _gravitatees;
+            private set => _gravitatees = value.ToList();
+        }
 
         private void UpdateGravitatorsAndGravitatees()
         {
-            Gravitators = Bodies
+            Gravitators = _bodies
                 .OfType<IGravitator>()
                 .ToList();
-            Gravitatees = Bodies
+            Gravitatees = _bodies
                 .OfType<IGravitatee>()
                 .ToList();
-            foreach (var gravitatee in Gravitatees) gravitatee.Gravitators = Gravitators;
+            foreach (var gravitatee in _gravitatees) gravitatee.Gravitators = Gravitators;
         }
 
         private void SyncCheck()
         {
-            if (Bodies.Count > 0 && Bodies.Select(b => b.CurrentTime).Any(t => !t.Equals(Bodies.First().CurrentTime)))
+            if (_bodies.Count > 0 && _bodies.Select(b => b.CurrentTime).Any(t => !t.Equals(Bodies.First().CurrentTime)))
                 throw new SimulationDesyncException("Simulation is out of sync", Bodies);
         }
 
@@ -73,7 +84,7 @@ namespace RocketEngine.Simulation
             var simSecondsPerStep = seconds / numberOfSteps;
             var timeSpanPerStep = new TimeSpan((long) (simSecondsPerStep * 1e7));
             for (var i = 0; i < numberOfSteps; i++)
-                foreach (var body in Bodies)
+                foreach (var body in _bodies)
                     body.Update(timeSpanPerStep);
 
             SyncCheck();
@@ -81,7 +92,7 @@ namespace RocketEngine.Simulation
 
         public void AddBody(IBody body)
         {
-            Bodies.Add(body);
+            _bodies.Add(body);
 
             try
             {

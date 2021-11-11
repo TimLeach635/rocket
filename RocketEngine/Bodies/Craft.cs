@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using RocketEngine.Positioning;
 using RocketEngine.Simulation;
@@ -10,6 +11,7 @@ namespace RocketEngine.Bodies
     {
         private readonly TimeSpan _minimumTimestep = TimeSpan.FromDays(1f);
         private Vector3 _velocity;
+        private List<IGravitator> _gravitators;
 
         public Craft(DateTime initialTime, Position initialPosition, Vector3 initialVelocity)
         {
@@ -30,7 +32,11 @@ namespace RocketEngine.Bodies
         {
         }
 
-        public ICollection<IGravitator> Gravitators { get; set; }
+        public ICollection<IGravitator> Gravitators
+        {
+            get => _gravitators;
+            set => _gravitators = value.ToList();
+        }
 
         public Position Position { get; }
 
@@ -55,7 +61,7 @@ namespace RocketEngine.Bodies
             Position.ChangeBy((float) timestep.TotalSeconds * _velocity);
 
             // update velocity
-            foreach (var gravitator in Gravitators)
+            foreach (var gravitator in _gravitators)
             {
                 var difference = gravitator.Position.ICRSVectorf - Position.ICRSVectorf;
                 var distance = (float) Math.Sqrt(Vector3.Dot(difference, difference));
